@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Quest Board</title>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+:root {
+  --bg:#0a0a12; --panel:#11111e; --card:#181828; --card2:#1e1e32;
+  --border:#2a2a45; --accent:#00e5ff; --accent2:#7c4dff;
+  --high:#ff4757; --med:#ffa502; --low:#2ed573;
+  --text:#e8e8f0; --muted:#6060a0;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'Courier New', Courier, monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);
+  display:flex;height:100dvh;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+#sidebar{width:360px;min-width:360px;background:var(--panel);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  transition:transform .3s ease;z-index:100;}
+.sidebar-top{padding:16px;border-bottom:1px solid var(--border);}
+.sidebar-top h2{font-size:.95em;font-weight:700;color:var(--accent);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;}
+.add-form{display:flex;flex-direction:column;gap:8px;}
+.add-form input,.add-form select{background:var(--bg);border:1px solid var(--border);
+  color:var(--text);padding:7px 10px;border-radius:6px;font-size:.88em;
+  outline:none;width:100%;font-family:var(--font);}
+.add-form input:focus,.add-form select:focus{border-color:var(--accent);}
+.add-form input::placeholder{color:var(--muted);}
+.add-form select option{background:#1a1a30;}
+.form-row{display:flex;gap:8px;}.form-row>*{flex:1;}
+.btn-add{background:var(--accent2);border:none;color:#fff;padding:9px;
+  border-radius:6px;cursor:pointer;font-weight:700;font-size:.88em;
+  letter-spacing:1px;text-transform:uppercase;width:100%;}
+.btn-add:hover{opacity:.85;}
+#lib{flex-grow:1;overflow-y:auto;padding:10px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.cat{margin-bottom:6px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.cat-hd{padding:10px 14px;background:var(--card);cursor:pointer;user-select:none;
+  display:flex;justify-content:space-between;align-items:center;
+  font-weight:600;font-size:.88em;transition:background .15s;}
+.cat-hd:hover{background:var(--card2);}
+.cat-arrow{transition:transform .2s;font-size:.75em;color:var(--muted);}
+.cat.open .cat-arrow{transform:rotate(90deg);}
+.cat-body{display:none;padding:6px;background:rgba(0,0,0,.2);}
+.cat.open .cat-body{display:block;}
+.lib-card{display:flex;justify-content:space-between;align-items:center;
+  background:var(--card);border-radius:6px;padding:8px 10px;margin-bottom:4px;
+  border-left:3px solid var(--border);}
+.lib-card:hover{background:var(--card2);}
+.lib-card.H{border-left-color:var(--high);}
+.lib-card.M{border-left-color:var(--med);}
+.lib-card.L{border-left-color:var(--low);}
+.lib-info{flex-grow:1;margin-right:8px;}
+.lib-title{font-size:.85em;font-weight:600;line-height:1.3;}
+.lib-meta{color:var(--muted);font-size:.72em;margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;}
+.badge{font-size:.7em;padding:2px 6px;border-radius:10px;font-weight:700;font-family:var(--mono);}
+.badge.High{background:rgba(255,71,87,.2);color:var(--high);}
+.badge.Med{background:rgba(255,165,2,.2);color:var(--med);}
+.badge.Low{background:rgba(46,213,115,.2);color:var(--low);}
+.owner{background:rgba(124,77,255,.15);color:#a78bfa;padding:1px 6px;
+  border-radius:8px;font-size:.7em;font-weight:600;}
+.btn-push{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.3);
+  color:var(--accent);border-radius:5px;padding:4px 8px;font-size:.78em;
+  cursor:pointer;white-space:nowrap;font-weight:600;}
+.btn-push:hover{background:rgba(0,229,255,.2);}
+#close-sb{display:none;position:absolute;top:10px;right:10px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;
+  font-size:.85em;align-items:center;justify-content:center;}
+#close-sb:hover{color:var(--text);}
+
+/* ── MAIN ── */
+#main{flex-grow:1;display:flex;flex-direction:column;overflow:hidden;}
+#hdr{padding:12px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+  background:linear-gradient(90deg,#0e0e1e,#131328);flex-shrink:0;}
+.hdr-left{display:flex;align-items:center;gap:8px;}
+#hdr h1{font-size:1.4em;font-weight:800;color:var(--accent);
+  letter-spacing:2px;text-transform:uppercase;white-space:nowrap;}
+.stats{display:flex;gap:12px;font-family:var(--mono);font-size:.76em;color:var(--muted);}
+.stats b{color:var(--accent);}
+.hdr-btns{display:flex;gap:6px;}
+.hbtn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);
+  padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;font-size:.82em;
+  transition:all .15s;white-space:nowrap;}
+.hbtn:hover{background:rgba(0,229,255,.08);border-color:var(--accent);color:var(--accent);}
+#mob-btn{display:none;}
+#filter-bar{padding:8px 16px;border-bottom:1px solid var(--border);
+  display:flex;gap:5px;flex-wrap:wrap;background:var(--panel);flex-shrink:0;}
+.fb{background:var(--card);border:1px solid var(--border);color:var(--muted);
+  padding:4px 11px;border-radius:20px;cursor:pointer;font-weight:600;font-size:.76em;
+  transition:all .15s;}
+.fb:hover,.fb.on{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,.06);}
+.fb.fh.on{border-color:var(--high);color:var(--high);background:rgba(255,71,87,.06);}
+.fb.fm.on{border-color:var(--med);color:var(--med);background:rgba(255,165,2,.06);}
+.fb.fl.on{border-color:var(--low);color:var(--low);background:rgba(46,213,115,.06);}
+#scroll{flex-grow:1;overflow-y:auto;padding:14px 16px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:12px;}
+.empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);font-size:.9em;}
+.empty-icon{font-size:2.5em;margin-bottom:8px;opacity:.35;}
+
+/* ── BOARD CARDS ── */
+.bc{background:var(--card);border-radius:10px;border:1px solid var(--border);
+  border-top:3px solid var(--border);padding:13px;display:flex;flex-direction:column;
+  gap:8px;animation:ci .3s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes ci{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+.bc.H{border-top-color:var(--high);}.bc.M{border-top-color:var(--med);}.bc.L{border-top-color:var(--low);}
+.bc:hover{box-shadow:0 4px 18px rgba(0,0,0,.4);}
+.bc.done{opacity:.4;filter:grayscale(80%);transition:all .5s;}
+.ct{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;}
+.ctitle{font-weight:700;font-size:.92em;line-height:1.4;flex-grow:1;}
+.crmv{background:transparent;border:none;color:var(--muted);cursor:pointer;
+  padding:2px 5px;border-radius:4px;font-size:.85em;transition:color .15s;}
+.crmv:hover{color:var(--high);}
+.cmeta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;
+  font-size:.76em;color:var(--muted);font-family:var(--mono);}
+
+/* Per-card timer bar */
+.card-timer-row{display:none;align-items:center;gap:8px;
+  background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.2);
+  border-radius:6px;padding:6px 10px;}
+.card-timer-row.on{display:flex;}
+.card-timer-display{font-family:var(--mono);font-size:1.3em;color:var(--accent);min-width:52px;font-weight:bold;}
+.card-timer-display.red{color:var(--high);}
+.card-timer-label{font-size:.72em;color:var(--muted);flex-grow:1;}
+.card-timer-btn{background:transparent;border:1px solid var(--border);color:var(--muted);
+  width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:.7em;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.card-timer-btn:hover{border-color:var(--accent);color:var(--accent);}
+.card-timer-btn.xb:hover{border-color:var(--high);color:var(--high);}
+
+/* ── INLINE EDIT PANEL ── */
+.edit-panel{display:none;flex-direction:column;gap:7px;
+  background:rgba(0,0,0,.25);border:1px solid var(--border);
+  border-radius:8px;padding:10px;}
+.edit-panel.on{display:flex;}
+.edit-panel input,.edit-panel select{background:var(--bg);border:1px solid var(--border);
+  color:var(--text);padding:6px 9px;border-radius:5px;font-size:.82em;
+  font-family:var(--font);outline:none;width:100%;}
+.edit-panel input:focus,.edit-panel select:focus{border-color:var(--accent);}
+.edit-panel select option{background:#1a1a30;}
+.edit-row{display:flex;gap:7px;}.edit-row>*{flex:1;}
+.edit-save{background:rgba(46,213,115,.15);border:1px solid rgba(46,213,115,.4);
+  color:var(--low);padding:6px;border-radius:5px;cursor:pointer;
+  font-weight:700;font-size:.8em;width:100%;transition:background .15s;}
+.edit-save:hover{background:rgba(46,213,115,.28);}
+.cbtn.edit-active{background:rgba(255,165,2,.12);border-color:var(--med);color:var(--med);}
+
+.card-photo{width:100%;border-radius:6px;object-fit:cover;max-height:120px;
+  border:1px solid var(--border);display:none;margin-top:2px;}
+.card-photo.show{display:block;}
+.cbot{display:flex;justify-content:space-between;align-items:center;gap:6px;
+  border-top:1px solid var(--border);padding-top:8px;}
+.cbtns{display:flex;gap:5px;}
+.cbtn{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);
+  padding:4px 8px;border-radius:5px;cursor:pointer;font-size:.76em;font-weight:600;
+  transition:all .15s;white-space:nowrap;}
+.cbtn:hover{background:rgba(0,229,255,.08);border-color:var(--accent);color:var(--accent);}
+.cbtn.timer-active{background:rgba(0,229,255,.12);border-color:var(--accent);color:var(--accent);}
+.chk{appearance:none;-webkit-appearance:none;width:26px;height:26px;
+  border:2px solid var(--muted);border-radius:6px;cursor:pointer;
+  position:relative;flex-shrink:0;transition:all .2s;}
+.chk:hover{border-color:var(--accent);}
+.chk:checked{background:var(--low);border-color:var(--low);}
+.chk:checked::after{content:'V';position:absolute;color:var(--bg);
+  font-size:15px;font-weight:900;top:50%;left:50%;transform:translate(-50%,-50%);}
+
+/* ── PHOTO MODAL ── */
+#photo-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);
+  z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+#photo-modal.on{display:flex;}
+.pm-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+  padding:24px;max-width:320px;width:90%;text-align:center;}
+.pm-box h3{color:var(--accent);font-size:1em;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+.pm-preview{width:100%;border-radius:8px;max-height:200px;object-fit:cover;
+  border:1px solid var(--border);display:none;margin-bottom:12px;}
+.pm-preview.show{display:block;}
+.pm-btns{display:flex;flex-direction:column;gap:8px;}
+.pm-btn{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);
+  padding:10px;border-radius:8px;cursor:pointer;font-weight:600;font-size:.88em;
+  transition:all .15s;width:100%;}
+.pm-btn:hover{background:rgba(0,229,255,.08);border-color:var(--accent);color:var(--accent);}
+.pm-btn.save{background:rgba(46,213,115,.12);border-color:rgba(46,213,115,.4);color:var(--low);}
+.pm-btn.save:hover{background:rgba(46,213,115,.22);}
+.pm-btn.cancel{color:var(--muted);}
+#pm-file{display:none;}
+
+/* ── FULLSCREEN MODE (CSS class based) ── */
+body.fs-mode #sidebar{display:none!important;}
+body.fs-mode #filter-bar{display:none;}
+body.fs-mode #mob-btn{display:none!important;}
+body.fs-mode #hdr h1{letter-spacing:4px;}
+body.fs-mode .grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+body.fs-mode #scroll{padding:20px 32px;}
+
+/* ── OVERLAY & CONFIRM ── */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:90;}
+#overlay.on{display:block;}
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:1000;align-items:center;justify-content:center;}
+#modal.on{display:flex;}
+.mbox{background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:28px;text-align:center;max-width:290px;}
+.mbox h3{font-size:1.1em;color:var(--accent);margin-bottom:8px;letter-spacing:2px;}
+.mbox p{color:var(--muted);font-size:.86em;margin-bottom:18px;}
+.mbtns{display:flex;gap:8px;justify-content:center;}
+.mbtns button{padding:7px 20px;border-radius:6px;font-weight:700;
+  font-size:.86em;cursor:pointer;border:1px solid var(--border);transition:all .15s;}
+.myes{background:rgba(255,71,87,.15);color:var(--high);border-color:rgba(255,71,87,.4);}
+.myes:hover{background:rgba(255,71,87,.3);}
+.mno{background:rgba(255,255,255,.04);color:var(--text);}
+.mno:hover{background:rgba(255,255,255,.08);}
+
+@keyframes flash{0%{box-shadow:0 0 0 0 rgba(46,213,115,.8)}70%{box-shadow:0 0 0 18px rgba(46,213,115,0)}100%{box-shadow:0 0 0 0 rgba(46,213,115,0)}}
+.fl{animation:flash .6s ease-out;}
+
+@media(max-width:768px){
+  #sidebar{position:fixed;top:0;left:0;bottom:0;height:100%;
+    transform:translateX(-110%);width:88%;max-width:360px;z-index:200;
+    box-shadow:4px 0 20px rgba(0,0,0,.6);}
+  #sidebar.on{transform:translateX(0);}
+  #mob-btn{display:inline-flex;}
+  #close-sb{display:flex;}
+  #hdr h1{font-size:1.15em;}
+  .stats{display:none;}
+  .grid{grid-template-columns:1fr;}
+}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div id="overlay" onclick="toggleSB()"></div>
+
+<!-- CLEAR CONFIRM -->
+<div id="modal">
+  <div class="mbox">
+    <h3>CLEAR BOARD?</h3>
+    <p>Remove all active quests from the board?</p>
+    <div class="mbtns">
+      <button class="myes" onclick="doClear()">Yes, Clear</button>
+      <button class="mno" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PHOTO MODAL - shown after file is chosen -->
+<div id="photo-modal">
+  <div class="pm-box">
+    <h3>Save Photo Proof?</h3>
+    <img class="pm-preview" id="pm-preview" alt="Preview">
+    <div class="pm-btns">
+      <button class="pm-btn save" id="pm-save" onclick="pmSave()">Save to Card</button>
+      <button class="pm-btn cancel" onclick="pmClose()">Cancel</button>
+    </div>
+  </div>
+</div>
+<!-- File input at body level so Android triggers it reliably -->
+<input type="file" id="pm-file" accept="image/*" style="position:fixed;left:-9999px;opacity:0;width:1px;height:1px;" onchange="pmPreview(this)">
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <button id="close-sb" onclick="toggleSB()">X</button>
+  <div class="sidebar-top">
+    <h2>+ Add Custom Task</h2>
+    <div class="add-form">
+      <input type="text" id="nt-title" placeholder="Task name">
+      <div class="form-row">
+        <input type="number" id="nt-time" placeholder="Minutes" min="1" max="120">
+        <input type="text" id="nt-owner" placeholder="Owner">
+      </div>
+      <div class="form-row">
+        <select id="nt-cat">
+          <option>Logistics &amp; Self-Care</option>
+          <option>Kitchen &amp; Dining</option>
+          <option>Living Room</option>
+          <option>Family Room (Dreaded)</option>
+          <option>Bedrooms &amp; Hallways</option>
+          <option>Bathrooms</option>
+          <option>Outdoor &amp; Garage</option>
+        </select>
+        <select id="nt-pri">
+          <option value="High">High</option>
+          <option value="Med">Med</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+      <button class="btn-add" onclick="addCustom()">+ Add to Library</button>
+    </div>
+  </div>
+  <div id="lib"></div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="hdr">
+    <div class="hdr-left">
+      <button class="hbtn" id="mob-btn" onclick="toggleSB()">Menu</button>
+      <h1>Master Quest Board</h1>
+    </div>
+    <div class="stats">
+      Active: <b id="sa">0</b> &nbsp;
+      Done: <b id="sd">0</b> &nbsp;
+      XP: <b id="sx">0</b> &nbsp;
+      <span id="sync-status" style="font-size:.75em;transition:color .3s;"></span>
+    </div>
+    <div class="hdr-btns">
+      <button class="hbtn" onclick="document.getElementById('modal').classList.add('on')">Clear Board</button>
+      <button class="hbtn" id="fs-btn" onclick="toggleFS()">Fullscreen</button>
+    </div>
+  </div>
+
+  <div id="filter-bar">
+    <button class="fb on" onclick="setF('all',this)">All</button>
+    <button class="fb fh" onclick="setF('High',this)">High</button>
+    <button class="fb fm" onclick="setF('Med',this)">Med</button>
+    <button class="fb fl" onclick="setF('Low',this)">Low</button>
+    <button class="fb" onclick="setF('Andrew',this)">Andrew</button>
+    <button class="fb" onclick="setF('Toby',this)">Toby</button>
+    <button class="fb" onclick="setF('Joella',this)">Joella</button>
+    <button class="fb" onclick="setF('Avett',this)">Avett</button>
+    <button class="fb" onclick="setF('Anyone',this)">Anyone</button>
+  </div>
+
+  <div id="scroll">
+    <div class="grid" id="board"></div>
+  </div>
+</div>
+
+<script>
+// ── DATABASE ──────────────────────────────────────────────
+var DB = {
+  "Logistics & Self-Care": [
+    {id:"sc1",t:"Shower, Floss & Brush Teeth",m:20,o:"Andrew",p:"High"},
+    {id:"sc2",t:"Take a Quiet Rest Break",m:30,o:"Andrew",p:"High"},
+    {id:"lg1",t:"Bank: Get Amber's Bday Money",m:30,o:"Andrew",p:"High"},
+    {id:"lg2",t:"Fix Mosaic Phone Bill Payee",m:20,o:"Andrew",p:"High"}
+  ],
+  "Kitchen & Dining": [
+    {id:"k1",t:"Unload Top Rack",m:4,o:"Anyone",p:"High"},
+    {id:"k2",t:"Unload Bottom Rack",m:4,o:"Anyone",p:"High"},
+    {id:"k3",t:"Load Dirty Sink Dishes",m:5,o:"Anyone",p:"High"},
+    {id:"k4",t:"Hand Wash Big Items",m:10,o:"Anyone",p:"Med"},
+    {id:"k5",t:"Wipe Counters",m:5,o:"Joella",p:"High"},
+    {id:"k6",t:"Sweep Kitchen Floor",m:5,o:"Toby",p:"Med"},
+    {id:"k7",t:"Mop Kitchen Floor",m:10,o:"Toby",p:"Low"},
+    {id:"k8",t:"Wipe Inside Microwave",m:3,o:"Anyone",p:"Med"},
+    {id:"k9",t:"Reorganize Dining Table Space",m:5,o:"Joella",p:"High"},
+    {id:"k10",t:"Reorganize Bar Area",m:10,o:"Andrew",p:"Med"},
+    {id:"k11",t:"Fix Wobbly Faucet",m:15,o:"Andrew",p:"Low"},
+    {id:"k12",t:"Organize Under Sink",m:15,o:"Andrew",p:"Low"}
+  ],
+  "Living Room": [
+    {id:"lr1",t:"Pick Up Kid Trash/Wrappers",m:5,o:"Toby",p:"High"},
+    {id:"lr2",t:"Vacuum Furniture/Couch",m:10,o:"Toby",p:"Med"},
+    {id:"lr3",t:"Clean Sliding Glass Window",m:5,o:"Joella",p:"Low"},
+    {id:"lr4",t:"Fold 1 Basket of Laundry",m:10,o:"Anyone",p:"Med"},
+    {id:"lr5",t:"Vacuum Floors & Steps",m:10,o:"Toby",p:"High"},
+    {id:"lr6",t:"Reorganize Under TV",m:10,o:"Anyone",p:"Med"},
+    {id:"lr7",t:"Reorganize Next to Grey Couch",m:5,o:"Anyone",p:"Med"},
+    {id:"lr8",t:"Reorganize Amber's Side",m:10,o:"Andrew",p:"High"},
+    {id:"lr9",t:"Clear Behind Main Couch",m:5,o:"Anyone",p:"Med"}
+  ],
+  "Family Room (Dreaded)": [
+    {id:"fr1",t:"Organize Computer Desk",m:15,o:"Andrew",p:"Med"},
+    {id:"fr2",t:"Organize Book Shelf",m:10,o:"Joella",p:"Low"},
+    {id:"fr3",t:"Organize Board Game Shelf",m:10,o:"Anyone",p:"Low"},
+    {id:"fr4",t:"Clear Couch Area",m:5,o:"Anyone",p:"High"},
+    {id:"fr5",t:"Clear Electronics Workspace",m:15,o:"Andrew",p:"Med"},
+    {id:"fr6",t:"Avett's Lego Workspace",m:15,o:"Avett",p:"High"},
+    {id:"fr7",t:"Organize Jackets/Hats/Shoes",m:10,o:"Joella",p:"Med"},
+    {id:"fr8",t:"Vacuum Family Room Floor",m:10,o:"Toby",p:"High"}
+  ],
+  "Bedrooms & Hallways": [
+    {id:"bh1",t:"Clear Andrew's Side of Bed",m:10,o:"Andrew",p:"High"},
+    {id:"bh2",t:"Put Andrew's Laundry Away",m:10,o:"Andrew",p:"Med"},
+    {id:"bh3",t:"Vacuum Master Bedroom",m:10,o:"Andrew",p:"Low"},
+    {id:"bh4",t:"Clean & Reorganize Avett's Room",m:20,o:"Avett",p:"High"},
+    {id:"bh5",t:"Pick Up Hallway Clothes",m:5,o:"Toby/Joella",p:"High"},
+    {id:"bh6",t:"Organize Washer/Dryer Area",m:15,o:"Anyone",p:"Low"}
+  ],
+  "Bathrooms": [
+    {id:"ba1",t:"Downstairs: Put Items Away",m:5,o:"Anyone",p:"High"},
+    {id:"ba2",t:"Downstairs: Wipe Counters/Mirror",m:5,o:"Anyone",p:"Med"},
+    {id:"ba3",t:"Downstairs: Clean Toilet",m:10,o:"Anyone",p:"Med"},
+    {id:"ba4",t:"Downstairs: Mop Floor",m:10,o:"Anyone",p:"Low"},
+    {id:"ba5",t:"Upstairs: Wipe Down Shower",m:15,o:"Joella",p:"Med"},
+    {id:"ba6",t:"Upstairs: Mop Floor",m:10,o:"Joella",p:"Low"},
+    {id:"ba7",t:"Upstairs: Fix Cold-Water Sink",m:20,o:"Andrew",p:"Low"}
+  ],
+  "Outdoor & Garage": [
+    {id:"og1",t:"Garage: Clear Tool Space",m:15,o:"Andrew",p:"Low"},
+    {id:"og2",t:"Garage: Clear Workbench",m:15,o:"Andrew",p:"Low"},
+    {id:"og3",t:"Garage: Clear Entryway Floor",m:15,o:"Toby",p:"High"},
+    {id:"og4",t:"Backyard: Sawzall Furniture",m:30,o:"Andrew",p:"Low"},
+    {id:"og5",t:"Backyard: Burn Wood/Debris",m:45,o:"Andrew",p:"Low"},
+    {id:"og6",t:"Backyard: Plant Grass/Gravel Path",m:60,o:"Andrew",p:"Low"},
+    {id:"og7",t:"Backyard: Edging & Dirt Guard",m:30,o:"Andrew",p:"Low"}
+  ]
+};
+
+// ── STATE ─────────────────────────────────────────────────
+var active=[], done=new Set(), xp=0, filt='all', uid=1;
+
+// Per-card timer state: timers[bid] = {sec, paused, interval}
+var timers = {};
+
+// Photo modal state
+var pmTargetBid = null;
+var pmDataUrl   = null;
+
+// Fullscreen state
+var fsMode = false;
+
+// ── LIBRARY ───────────────────────────────────────────────
+function renderLib() {
+  var c=document.getElementById('lib'); c.innerHTML='';
+  var pmap={High:'H',Med:'M',Low:'L'};
+  Object.keys(DB).forEach(function(cat) {
+    var tasks=DB[cat];
+    var d=document.createElement('div'); d.className='cat';
+    d.innerHTML='<div class="cat-hd" onclick="this.parentElement.classList.toggle(\'open\')">'
+      +'<span>'+cat+'</span><span class="cat-arrow">&#9654;</span></div>'
+      +'<div class="cat-body">'+tasks.map(function(t){
+        return '<div class="lib-card '+pmap[t.p]+'" id="lc-'+t.id+'" style="flex-wrap:wrap;">'
+          +'<div class="lib-info"><div class="lib-title" id="lt-'+t.id+'">'+t.t+'</div>'
+          +'<div class="lib-meta"><span id="lm-'+t.id+'">'+t.m+'m</span>'
+          +'<span class="owner" id="lo-'+t.id+'">'+t.o+'</span>'
+          +'<span class="badge '+t.p+'" id="lb-'+t.id+'">'+t.p+'</span></div></div>'
+          +'<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">'
+          +'<button class="btn-push" onclick="push(\''+t.id+'\')">+ Quest</button>'
+          +'<button class="btn-push" style="background:rgba(255,165,2,.1);border-color:rgba(255,165,2,.3);color:var(--med)" id="leb-'+t.id+'" onclick="toggleLibEdit(\''+t.id+'\')">Edit</button>'
+          +'</div>'
+          +'<div class="edit-panel" id="lep-'+t.id+'" style="width:100%;margin-top:4px;">'
+          +'<select id="lei-name-'+t.id+'">'+buildNameOpts(t.t)+'</select>'
+          +'<div class="edit-row">'
+          +'<select id="lei-time-'+t.id+'">'+buildTimeOpts(t.m)+'</select>'
+          +'<select id="lei-owner-'+t.id+'">'+buildOwnerOpts(t.o)+'</select>'
+          +'</div>'
+          +'<select id="lei-pri-'+t.id+'">'
+          +'<option value="High"'+(t.p==='High'?' selected':'')+'>High Priority</option>'
+          +'<option value="Med"'+(t.p==='Med'?' selected':'')+'>Med Priority</option>'
+          +'<option value="Low"'+(t.p==='Low'?' selected':'')+'>Low Priority</option>'
+          +'</select>'
+          +'<button class="edit-save" onclick="saveLibEdit(\''+t.id+'\')">Save Changes</button>'
+          +'</div>'
+          +'</div>';
+      }).join('')+'</div>';
+    c.appendChild(d);
+  });
+}
+
+// ── PUSH TO BOARD ─────────────────────────────────────────
+function push(id) {
+  var task=null;
+  Object.values(DB).forEach(function(arr){arr.forEach(function(t){if(t.id===id)task=t;});});
+  if(!task)return;
+  var bid='b'+(uid++);
+  active.push({id:task.id,t:task.t,m:task.m,o:task.o,p:task.p,bid:bid,photo:null});
+  renderBoard(); updateStats();
+  if(window.innerWidth<=768) toggleSB();
+}
+
+// ── EDIT DROPDOWN BUILDERS ────────────────────────────────
+var TASK_NAMES = [
+  "Shower, Floss & Brush Teeth","Take a Quiet Rest Break",
+  "Bank: Get Amber's Bday Money","Fix Mosaic Phone Bill Payee",
+  "Unload Top Rack","Unload Bottom Rack","Load Dirty Sink Dishes",
+  "Hand Wash Big Items","Wipe Counters","Sweep Kitchen Floor",
+  "Mop Kitchen Floor","Wipe Inside Microwave","Reorganize Dining Table Space",
+  "Reorganize Bar Area","Fix Wobbly Faucet","Organize Under Sink",
+  "Pick Up Kid Trash/Wrappers","Vacuum Furniture/Couch","Clean Sliding Glass Window",
+  "Fold 1 Basket of Laundry","Vacuum Floors & Steps","Reorganize Under TV",
+  "Reorganize Next to Grey Couch","Reorganize Amber's Side","Clear Behind Main Couch",
+  "Organize Computer Desk","Organize Book Shelf","Organize Board Game Shelf",
+  "Clear Couch Area","Clear Electronics Workspace","Avett's Lego Workspace",
+  "Organize Jackets/Hats/Shoes","Vacuum Family Room Floor",
+  "Clear Andrew's Side of Bed","Put Andrew's Laundry Away","Vacuum Master Bedroom",
+  "Clean & Reorganize Avett's Room","Pick Up Hallway Clothes","Organize Washer/Dryer Area",
+  "Downstairs: Put Items Away","Downstairs: Wipe Counters/Mirror","Downstairs: Clean Toilet",
+  "Downstairs: Mop Floor","Upstairs: Wipe Down Shower","Upstairs: Mop Floor",
+  "Upstairs: Fix Cold-Water Sink","Garage: Clear Tool Space","Garage: Clear Workbench",
+  "Garage: Clear Entryway Floor","Backyard: Sawzall Furniture","Backyard: Burn Wood/Debris",
+  "Backyard: Plant Grass/Gravel Path","Backyard: Edging & Dirt Guard"
+];
+
+var OWNERS = ["Andrew","Toby","Joella","Katelynn","Avett","Aliena","Anyone","Toby/Joella"];
+
+function buildNameOpts(current){
+  // If current name isn't in the list (e.g. custom task), add it at top
+  var names = TASK_NAMES.slice();
+  if(names.indexOf(current)<0) names.unshift(current);
+  return names.map(function(n){
+    return '<option value="'+n.replace(/"/g,'&quot;')+'"'+(n===current?' selected':'')+'>'+n+'</option>';
+  }).join('');
+}
+
+function buildTimeOpts(current){
+  var html='';
+  for(var i=5;i<=90;i+=5){
+    html+='<option value="'+i+'"'+(i===current?' selected':'')+'>'+i+' min</option>';
+  }
+  // If current isn't a multiple of 5, add it
+  if(current%5!==0){
+    html='<option value="'+current+'" selected>'+current+' min</option>'+html;
+  }
+  return html;
+}
+
+function buildOwnerOpts(current){
+  var owners = OWNERS.slice();
+  if(owners.indexOf(current)<0) owners.unshift(current);
+  return owners.map(function(o){
+    return '<option value="'+o+'"'+(o===current?' selected':'')+'>'+o+'</option>';
+  }).join('');
+}
+
+// ── BOARD RENDER ──────────────────────────────────────────
+function renderBoard() {
+  var board=document.getElementById('board'); board.innerHTML='';
+  var pmap={High:'H',Med:'M',Low:'L'};
+
+  if(!active.length){
+    board.innerHTML='<div class="empty"><div class="empty-icon">&#127919;</div><p>Quest Board is empty &mdash; add tasks from the library!</p></div>';
+    return;
+  }
+  var vis=active.filter(function(t){
+    if(filt==='all')return true;
+    if(['High','Med','Low'].indexOf(filt)>=0)return t.p===filt;
+    return t.o.toLowerCase().indexOf(filt.toLowerCase())>=0;
+  });
+  if(!vis.length){
+    board.innerHTML='<div class="empty"><div class="empty-icon">&#128269;</div><p>No tasks match this filter.</p></div>';
+    return;
+  }
+  vis.forEach(function(t){
+    var isDone=done.has(t.bid);
+    var pc=pmap[t.p];
+    var hasTimer=timers[t.bid];
+    var d=document.createElement('div');
+    d.className='bc '+pc+(isDone?' done':'');
+    d.id='card-'+t.bid;
+
+    var photoHtml='';
+    if(t.photo){
+      photoHtml='<img class="card-photo show" id="ph-'+t.bid+'" src="'+t.photo+'" alt="Proof">';
+    } else {
+      photoHtml='<img class="card-photo" id="ph-'+t.bid+'" alt="Proof">';
+    }
+
+    d.innerHTML=
+      '<div class="ct"><div class="ctitle" id="ctitle-'+t.bid+'">'+t.t+'</div>'
+      +'<button class="crmv" onclick="rmCard(\''+t.bid+'\')">X</button></div>'
+      +'<div class="cmeta"><span>'+t.m+' min</span>'
+      +'<span class="owner">'+t.o+'</span>'
+      +'<span class="badge '+t.p+'" id="cbadge-'+t.bid+'">'+t.p+'</span></div>'
+      // Inline edit panel
+      +'<div class="edit-panel" id="ep-'+t.bid+'">'
+      +'<select id="ei-name-'+t.bid+'">'+buildNameOpts(t.t)+'</select>'
+      +'<div class="edit-row">'
+      +'<select id="ei-time-'+t.bid+'">'+buildTimeOpts(t.m)+'</select>'
+      +'<select id="ei-owner-'+t.bid+'">'+buildOwnerOpts(t.o)+'</select>'
+      +'</div>'
+      +'<select id="ei-pri-'+t.bid+'">'
+      +'<option value="High"'+(t.p==='High'?' selected':'')+'>High Priority</option>'
+      +'<option value="Med"'+(t.p==='Med'?' selected':'')+'>Med Priority</option>'
+      +'<option value="Low"'+(t.p==='Low'?' selected':'')+'>Low Priority</option>'
+      +'</select>'
+      +'<button class="edit-save" onclick="saveEdit(\''+t.bid+'\')">Save Changes</button>'
+      +'</div>'
+      // Per-card timer row
+      +'<div class="card-timer-row'+(hasTimer?' on':'')+'" id="tr-'+t.bid+'">'
+      +'<div class="card-timer-display" id="td-'+t.bid+'">'+fmt(hasTimer?hasTimer.sec:t.m*60)+'</div>'
+      +'<div class="card-timer-label" id="tl-'+t.bid+'">'+(hasTimer?(hasTimer.paused?'Paused':'Running...'):'')+'</div>'
+      +'<button class="card-timer-btn" id="tp-'+t.bid+'" onclick="timerPauseToggle(\''+t.bid+'\')">'+(hasTimer&&hasTimer.paused?'&#9654;':'&#9646;&#9646;')+'</button>'
+      +'<button class="card-timer-btn xb" onclick="timerStop(\''+t.bid+'\')">X</button>'
+      +'</div>'
+      +photoHtml
+      +'<div class="cbot"><div class="cbtns">'
+      +'<button class="cbtn'+(hasTimer?' timer-active':'')+'" id="tb-'+t.bid+'" onclick="timerStart(\''+t.bid+'\','+t.m+')">Timer</button>'
+      +'<button class="cbtn" onclick="openPhoto(\''+t.bid+'\')">Photo</button>'
+      +'<button class="cbtn" id="eb-'+t.bid+'" onclick="toggleEdit(\''+t.bid+'\')">Edit</button>'
+      +'</div><input type="checkbox" class="chk" '+(isDone?'checked':'')+' onchange="toggleDone(\''+t.bid+'\','+t.m+',this)"></div>';
+    board.appendChild(d);
+  });
+
+  // Re-hook live intervals to restored display elements
+  Object.keys(timers).forEach(function(bid){
+    var td=document.getElementById('td-'+bid);
+    if(td) td.textContent=fmt(timers[bid].sec);
+  });
+}
+
+// ── CARD ACTIONS ──────────────────────────────────────────
+function rmCard(bid){
+  timerStop(bid);
+  active=active.filter(function(t){return t.bid!==bid;});
+  done.delete(bid);
+  renderBoard(); updateStats();
+}
+
+function toggleDone(bid,mins,cb){
+  if(cb.checked){
+    done.add(bid); xp+=mins; boom(); ding();
+    var c=document.getElementById('card-'+bid);
+    if(c){c.classList.add('done','fl');c.addEventListener('animationend',function(){c.classList.remove('fl');},{once:true});}
+  } else {
+    done.delete(bid); xp=Math.max(0,xp-mins);
+    var c=document.getElementById('card-'+bid); if(c)c.classList.remove('done');
+  }
+  updateStats();
+}
+
+function toggleEdit(bid){
+  var ep=document.getElementById('ep-'+bid);
+  var eb=document.getElementById('eb-'+bid);
+  if(!ep)return;
+  var isOpen=ep.classList.contains('on');
+  ep.classList.toggle('on');
+  if(eb) eb.classList.toggle('edit-active',!isOpen);
+}
+
+function saveEdit(bid){
+  var task=null;
+  for(var i=0;i<active.length;i++){if(active[i].bid===bid){task=active[i];break;}}
+  if(!task)return;
+
+  var nameEl =document.getElementById('ei-name-'+bid);
+  var timeEl =document.getElementById('ei-time-'+bid);
+  var ownerEl=document.getElementById('ei-owner-'+bid);
+  var priEl  =document.getElementById('ei-pri-'+bid);
+  if(!nameEl)return;
+
+  var newName =nameEl.value||task.t;
+  var newTime =parseInt(timeEl.value)||task.m;
+  var newOwner=ownerEl.value||task.o;
+  var newPri  =priEl.value;
+  var pmap={High:'H',Med:'M',Low:'L'};
+
+  // Update task object
+  task.t=newName; task.m=newTime; task.o=newOwner; task.p=newPri;
+
+  // Update card visuals without full re-render (preserves timer state)
+  var card=document.getElementById('card-'+bid);
+  if(card){
+    // Update border color class
+    card.className='bc '+pmap[newPri]+(done.has(bid)?' done':'');
+    card.id='card-'+bid;
+  }
+  var titleEl=document.getElementById('ctitle-'+bid);
+  if(titleEl)titleEl.textContent=newName;
+
+  var badgeEl=document.getElementById('cbadge-'+bid);
+  if(badgeEl){badgeEl.className='badge '+newPri;badgeEl.textContent=newPri;}
+
+  // Update meta row (mins + owner) — find and rebuild just the cmeta div
+  var cmeta=card?card.querySelector('.cmeta'):null;
+  if(cmeta){
+    cmeta.innerHTML='<span>'+newTime+' min</span>'
+      +'<span class="owner">'+newOwner+'</span>'
+      +'<span class="badge '+newPri+'" id="cbadge-'+bid+'">'+newPri+'</span>';
+  }
+
+  // If timer is NOT running, reset its display to new time
+  if(!timers[bid]){
+    var td=document.getElementById('td-'+bid);
+    if(td)td.textContent=fmt(newTime*60);
+  }
+
+  // Close the edit panel
+  toggleEdit(bid);
+}
+
+function toggleLibEdit(id){
+  var ep=document.getElementById('lep-'+id);
+  var eb=document.getElementById('leb-'+id);
+  if(!ep)return;
+  var isOpen=ep.classList.contains('on');
+  ep.classList.toggle('on');
+  if(eb) eb.textContent=isOpen?'Edit':'Done';
+}
+
+function saveLibEdit(id){
+  // Find task in DB
+  var task=null;
+  Object.values(DB).forEach(function(arr){arr.forEach(function(t){if(t.id===id)task=t;});});
+  if(!task)return;
+
+  var newName =document.getElementById('lei-name-'+id).value||task.t;
+  var newTime =parseInt(document.getElementById('lei-time-'+id).value)||task.m;
+  var newOwner=document.getElementById('lei-owner-'+id).value||task.o;
+  var newPri  =document.getElementById('lei-pri-'+id).value;
+  var pmap={High:'H',Med:'M',Low:'L'};
+
+  // Update DB object
+  task.t=newName; task.m=newTime; task.o=newOwner; task.p=newPri;
+
+  // Update library card visuals directly without full re-render
+  var card=document.getElementById('lc-'+id);
+  if(card){
+    card.className='lib-card '+pmap[newPri];
+  }
+  var lt=document.getElementById('lt-'+id);  if(lt)lt.textContent=newName;
+  var lm=document.getElementById('lm-'+id);  if(lm)lm.textContent=newTime+'m';
+  var lo=document.getElementById('lo-'+id);  if(lo)lo.textContent=newOwner;
+  var lb=document.getElementById('lb-'+id);
+  if(lb){lb.className='badge '+newPri; lb.textContent=newPri;}
+
+  // Close edit panel
+  toggleLibEdit(id);
+}
+
+// ── PER-CARD TIMERS ───────────────────────────────────────
+function timerStart(bid,mins){
+  // If timer already running for this card, just toggle pause
+  if(timers[bid]){timerPauseToggle(bid);return;}
+
+  var task=active.filter(function(t){return t.bid===bid;})[0];
+  if(!task)return;
+
+  timers[bid]={sec:mins*60,paused:false,interval:null};
+
+  // Show timer row and mark button active
+  var row=document.getElementById('tr-'+bid);
+  var btn=document.getElementById('tb-'+bid);
+  var pb=document.getElementById('tp-'+bid);
+  if(row)row.classList.add('on');
+  if(btn)btn.classList.add('timer-active');
+  if(pb)pb.innerHTML='&#9646;&#9646;';
+
+  timers[bid].interval=setInterval(function(){
+    if(!timers[bid]||timers[bid].paused)return;
+    timers[bid].sec--;
+    var td=document.getElementById('td-'+bid);
+    var tl=document.getElementById('tl-'+bid);
+    if(td){
+      td.textContent=fmt(timers[bid].sec);
+      if(timers[bid].sec<=30&&timers[bid].sec>0)td.classList.add('red');
+      else td.classList.remove('red');
+    }
+    if(tl)tl.textContent='Running...';
+    if(timers[bid].sec<=0){
+      clearInterval(timers[bid].interval);
+      if(td)td.textContent='DONE!';
+      if(td)td.classList.remove('red');
+      if(tl)tl.textContent='Complete!';
+      alarm();
+      // Auto-clean after 3s
+      setTimeout(function(){timerStop(bid);},3000);
+    }
+  },1000);
+}
+
+function timerPauseToggle(bid){
+  if(!timers[bid])return;
+  timers[bid].paused=!timers[bid].paused;
+  var pb=document.getElementById('tp-'+bid);
+  var tl=document.getElementById('tl-'+bid);
+  if(pb)pb.innerHTML=timers[bid].paused?'&#9654;':'&#9646;&#9646;';
+  if(tl)tl.textContent=timers[bid].paused?'Paused':'Running...';
+}
+
+function timerStop(bid){
+  if(timers[bid]){
+    clearInterval(timers[bid].interval);
+    delete timers[bid];
+  }
+  var row=document.getElementById('tr-'+bid);
+  var btn=document.getElementById('tb-'+bid);
+  var td=document.getElementById('td-'+bid);
+  if(row)row.classList.remove('on');
+  if(btn)btn.classList.remove('timer-active');
+  // Reset display to task duration
+  var task=active.filter(function(t){return t.bid===bid;})[0];
+  if(task&&td)td.textContent=fmt(task.m*60);
+}
+
+// ── PHOTO MODAL ───────────────────────────────────────────
+function openPhoto(bid){
+  // Store target, then trigger file input directly from this user gesture
+  pmTargetBid=bid;
+  pmDataUrl=null;
+  var inp=document.getElementById('pm-file');
+  inp.value='';
+  inp.click();
+}
+
+function pmChoose(){
+  // Legacy - no longer used but kept to avoid errors
+  document.getElementById('pm-file').click();
+}
+
+function pmPreview(inp){
+  if(!inp.files||!inp.files[0])return;
+  var r=new FileReader();
+  r.onload=function(e){
+    pmDataUrl=e.target.result;
+    // Show confirm modal with preview
+    var prev=document.getElementById('pm-preview');
+    prev.src=pmDataUrl; prev.classList.add('show');
+    document.getElementById('pm-save').style.display='block';
+    document.getElementById('photo-modal').classList.add('on');
+  };
+  r.readAsDataURL(inp.files[0]);
+}
+
+function pmSave(){
+  if(!pmTargetBid||!pmDataUrl)return;
+  // Store in active task object
+  active.forEach(function(t){if(t.bid===pmTargetBid)t.photo=pmDataUrl;});
+  // Update card image directly
+  var img=document.getElementById('ph-'+pmTargetBid);
+  if(img){img.src=pmDataUrl;img.classList.add('show');}
+  pmClose();
+}
+
+function pmClose(){
+  document.getElementById('photo-modal').classList.remove('on');
+  var prev=document.getElementById('pm-preview');
+  prev.src=''; prev.classList.remove('show');
+  pmTargetBid=null; pmDataUrl=null;
+}
+
+// ── FILTER ────────────────────────────────────────────────
+function setF(f,btn){
+  filt=f;
+  document.querySelectorAll('.fb').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  renderBoard();
+}
+
+// ── STATS ─────────────────────────────────────────────────
+function updateStats(){
+  document.getElementById('sa').textContent=active.length;
+  document.getElementById('sd').textContent=done.size;
+  document.getElementById('sx').textContent=xp;
+}
+
+// ── FULLSCREEN ────────────────────────────────────────────
+function toggleFS(){
+  if(!fsMode){
+    // Enter fullscreen
+    var el=document.documentElement;
+    var req=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
+    if(req){
+      req.call(el).catch(function(){}); // native attempt, ignore errors
+    }
+    applyFSClass(); // always apply CSS mode immediately
+  } else {
+    // Exit fullscreen
+    var ex=document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen||document.msExitFullscreen;
+    if(ex && (document.fullscreenElement||document.webkitFullscreenElement)){
+      ex.call(document).catch(function(){});
+    }
+    removeFSClass(); // always remove CSS mode immediately
+  }
+}
+
+function applyFSClass(){
+  document.body.classList.add('fs-mode');
+  document.getElementById('fs-btn').textContent='Exit Full';
+  fsMode=true;
+}
+function removeFSClass(){
+  document.body.classList.remove('fs-mode');
+  document.getElementById('fs-btn').textContent='Fullscreen';
+  fsMode=false;
+}
+
+// Sync CSS state if browser exits native fullscreen on its own (e.g. back button)
+document.addEventListener('fullscreenchange',function(){
+  if(!document.fullscreenElement&&!document.webkitFullscreenElement) removeFSClass();
+});
+document.addEventListener('webkitfullscreenchange',function(){
+  if(!document.webkitFullscreenElement&&!document.fullscreenElement) removeFSClass();
+});
+
+// ── AUDIO ─────────────────────────────────────────────────
+function getAC(){if(!window._ac)window._ac=new(window.AudioContext||window.webkitAudioContext)();return window._ac;}
+function ding(){
+  try{var c=getAC();[523,659,784,1047].forEach(function(f,i){
+    var o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.frequency.value=f;o.type='sine';
+    var t=c.currentTime+i*.1;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3,t+.02);
+    g.gain.exponentialRampToValueAtTime(.001,t+.4);
+    o.start(t);o.stop(t+.45);
+  });}catch(e){}
+}
+function alarm(){
+  try{var c=getAC();[440,880,440,880].forEach(function(f,i){
+    var o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.frequency.value=f;o.type='square';
+    var t=c.currentTime+i*.15;
+    g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);
+    o.start(t);o.stop(t+.15);
+  });}catch(e){}
+}
+
+// ── CONFETTI ──────────────────────────────────────────────
+function boom(){
+  if(typeof confetti==='undefined')return;
+  confetti({particleCount:80,spread:70,origin:{y:.6},
+    colors:['#00e5ff','#7c4dff','#ff4081','#2ed573','#ffa502']});
+  setTimeout(function(){confetti({particleCount:40,spread:100,origin:{y:.4}});},250);
+}
+
+// ── CUSTOM TASK ───────────────────────────────────────────
+function addCustom(){
+  var title=document.getElementById('nt-title').value.trim();
+  if(!title){document.getElementById('nt-title').focus();return;}
+  var m=parseInt(document.getElementById('nt-time').value)||10;
+  var o=document.getElementById('nt-owner').value.trim()||'Anyone';
+  var cat=document.getElementById('nt-cat').value;
+  var p=document.getElementById('nt-pri').value;
+  if(!DB[cat])DB[cat]=[];
+  DB[cat].push({id:'c'+Date.now(),t:title,m:m,o:o,p:p});
+  document.getElementById('nt-title').value='';
+  document.getElementById('nt-time').value='';
+  document.getElementById('nt-owner').value='';
+  renderLib();
+}
+
+// ── CLEAR ─────────────────────────────────────────────────
+function doClear(){
+  // Stop all timers
+  Object.keys(timers).forEach(function(bid){timerStop(bid);});
+  active=[]; done.clear(); xp=0;
+  renderBoard(); updateStats(); closeModal();
+}
+function closeModal(){document.getElementById('modal').classList.remove('on');}
+
+// ── SIDEBAR ───────────────────────────────────────────────
+function toggleSB(){
+  document.getElementById('sidebar').classList.toggle('on');
+  document.getElementById('overlay').classList.toggle('on');
+}
+
+// ── UTIL ──────────────────────────────────────────────────
+function fmt(s){
+  var neg=s<0?'-':'';s=Math.abs(s);
+  return neg+pad(Math.floor(s/60))+':'+pad(s%60);
+}
+function pad(n){return n<10?'0'+n:''+n;}
+
+// ── FIREBASE SYNC ─────────────────────────────────────────
+var firebaseConfig = {
+  apiKey: "AIzaSyDJ_8Ipf2FtRPAdSxrtyuPwLRDjfUUvT30",
+  authDomain: "quest-board-aac57.firebaseapp.com",
+  databaseURL: "https://quest-board-aac57-default-rtdb.firebaseio.com",
+  projectId: "quest-board-aac57",
+  storageBucket: "quest-board-aac57.firebasestorage.app",
+  messagingSenderId: "577186584340",
+  appId: "1:577186584340:web:9d781426e902f5b6aa9401",
+  measurementId: "G-6Y39N86731"
+};
+
+var fbApp = firebase.initializeApp(firebaseConfig);
+var fbDb  = firebase.database();
+var boardRef = fbDb.ref('board');
+var fbReady  = false;
+
+// Show a subtle sync status indicator
+function setSyncStatus(msg, color){
+  var el=document.getElementById('sync-status');
+  if(el){el.textContent=msg; el.style.color=color||'var(--muted)';}
+}
+
+// Save full board state to Firebase
+function fbSave(){
+  if(!fbReady) return;
+  var payload = {
+    active: active.map(function(t){
+      // Don't save photo data to Firebase (too large) - stays local only
+      return {id:t.id,t:t.t,m:t.m,o:t.o,p:t.p,bid:t.bid};
+    }),
+    done:   Array.from(done),
+    xp:     xp
+  };
+  boardRef.set(payload).then(function(){
+    setSyncStatus('Synced', 'var(--low)');
+    setTimeout(function(){setSyncStatus('');},2000);
+  }).catch(function(e){
+    setSyncStatus('Sync error', 'var(--high)');
+    console.error('Firebase save error:',e);
+  });
+}
+
+// Load board state from Firebase and listen for changes
+function fbListen(){
+  boardRef.on('value', function(snap){
+    var data = snap.val();
+    if(!data) return; // empty database, nothing to load
+
+    // Only update if data differs from what we have (avoid echo loops)
+    var incomingBids = (data.active||[]).map(function(t){return t.bid;}).join(',');
+    var currentBids  = active.map(function(t){return t.bid;}).join(',');
+
+    if(incomingBids !== currentBids || JSON.stringify(Array.from(done).sort()) !== JSON.stringify((data.done||[]).sort())){
+      active = data.active || [];
+      done   = new Set(data.done || []);
+      xp     = data.xp || 0;
+      renderBoard();
+      updateStats();
+      setSyncStatus('Updated from another device', 'var(--accent)');
+      setTimeout(function(){setSyncStatus('');},3000);
+    }
+  }, function(error){
+    setSyncStatus('Offline', 'var(--high)');
+    console.error('Firebase listen error:', error);
+  });
+  fbReady = true;
+}
+
+// Patch all state-changing functions to also save to Firebase
+var _origToggleDone = toggleDone;
+function toggleDone(bid,mins,cb){
+  _origToggleDone(bid,mins,cb);
+  fbSave();
+}
+
+var _origRmCard = rmCard;
+function rmCard(bid){
+  _origRmCard(bid);
+  fbSave();
+}
+
+var _origPush = push;
+function push(id){
+  _origPush(id);
+  fbSave();
+}
+
+var _origSaveEdit = saveEdit;
+function saveEdit(bid){
+  _origSaveEdit(bid);
+  fbSave();
+}
+
+var _origDoClear = doClear;
+function doClear(){
+  _origDoClear();
+  boardRef.set(null); // wipe Firebase too
+}
+
+// ── INIT ──────────────────────────────────────────────────
+renderLib();
+renderBoard();
+updateStats();
+fbListen(); // connect to Firebase and start listening
+</script>
+</body>
+</html>
