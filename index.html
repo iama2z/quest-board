@@ -310,6 +310,11 @@ body.fs-mode #scroll{padding:20px 32px;}
     </div>
     <div class="hdr-btns">
       <button class="hbtn" onclick="document.getElementById('modal').classList.add('on')">Clear Board</button>
+        <div class="hdr-btns">
+  <button class="hbtn" onclick="document.getElementById('modal').classList.add('on')">Clear Board</button>
+  <button class="hbtn" id="undo-btn" style="display:none; color:var(--med); border-color:var(--med);" onclick="undoClear()">Undo Clear</button>
+  <button class="hbtn" id="fs-btn" onclick="toggleFS()">Fullscreen</button>
+</div>
       <button class="hbtn" id="fs-btn" onclick="toggleFS()">Fullscreen</button>
     </div>
   </div>
@@ -929,14 +934,47 @@ push = function(id){ _origPush(id); fbSave(); };
 var _origSaveEdit = saveEdit;
 saveEdit = function(bid){ _origSaveEdit(bid); fbSave(); };
 
+// ── UNDO CLEAR LOGIC ──────────────────────────────────────
+var backupState = null;
+
 var _origDoClear = doClear;
 doClear = function(){
+  // 1. Take a snapshot of the board BEFORE it wipes
+  backupState = {
+    active: JSON.parse(JSON.stringify(active)), 
+    done: Array.from(done),
+    xp: xp
+  };
+  
+  // 2. Make the Undo button visible
+  var undoBtn = document.getElementById('undo-btn');
+  if(undoBtn) undoBtn.style.display = 'inline-block';
+
+  // 3. Proceed with the normal clear and wipe Firebase
   _origDoClear();
   isSaving = true;
   boardRef.set(null).then(function(){
     setTimeout(function(){ isSaving = false; }, 500);
   });
 };
+
+function undoClear() {
+  if(!backupState) return;
+  
+  // 1. Restore the snapshot data
+  active = backupState.active;
+  done = new Set(backupState.done);
+  xp = backupState.xp;
+  
+  // 2. Hide the Undo button and clear the backup memory
+  document.getElementById('undo-btn').style.display = 'none';
+  backupState = null;
+  
+  // 3. Re-render the screen and push the restored board back to Firebase!
+  renderBoard();
+  updateStats();
+  fbSave();
+}
 
 // ── INIT ──────────────────────────────────────────────────
 renderLib();
