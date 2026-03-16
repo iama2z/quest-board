@@ -968,7 +968,9 @@ var firebaseConfig = {
 var fbApp = firebase.initializeApp(firebaseConfig);
 var fbDb  = firebase.database();
 var boardRef = fbDb.ref('board');
-var fbReady  = false;
+
+// Claude's flag to ignore echoes
+var isSaving = false;
 
 // Show a subtle sync status indicator
 function setSyncStatus(msg, color){
@@ -976,82 +978,84 @@ function setSyncStatus(msg, color){
   if(el){el.textContent=msg; el.style.color=color||'var(--muted)';}
 }
 
-// Save full board state to Firebase
 function fbSave(){
-  if(!fbReady) return;
+  isSaving = true; // Tell the app WE are making the change
   var payload = {
     active: active.map(function(t){
-      // Don't save photo data to Firebase (too large) - stays local only
       return {id:t.id,t:t.t,m:t.m,o:t.o,p:t.p,bid:t.bid};
     }),
     done:   Array.from(done),
     xp:     xp
   };
+  
   boardRef.set(payload).then(function(){
     setSyncStatus('Synced', 'var(--low)');
     setTimeout(function(){setSyncStatus('');},2000);
+    // Clear the flag after a brief delay so the echo passes
+    setTimeout(function(){ isSaving = false; }, 500); 
   }).catch(function(e){
+    isSaving = false;
     setSyncStatus('Sync error', 'var(--high)');
     console.error('Firebase save error:',e);
   });
 }
 
-// Load board state from Firebase and listen for changes
-function fbListen(){
-  boardRef.on('value', function(snap){
-    var data = snap.val();
-    if(!data) return; // empty database, nothing to load
+function applyIncomingData(data) {
+  active = data.active || [];
+  done   = new Set(data.done || []);
+  xp     = data.xp || 0;
 
-    // Only update if data differs from what we have (avoid echo loops)
-    var incomingBids = (data.active||[]).map(function(t){return t.bid;}).join(',');
-    var currentBids  = active.map(function(t){return t.bid;}).join(',');
-
-    if(incomingBids !== currentBids || JSON.stringify(Array.from(done).sort()) !== JSON.stringify((data.done||[]).sort())){
-      active = data.active || [];
-      done   = new Set(data.done || []);
-      xp     = data.xp || 0;
-      renderBoard();
-      updateStats();
-      setSyncStatus('Updated from another device', 'var(--accent)');
-      setTimeout(function(){setSyncStatus('');},3000);
-    }
-  }, function(error){
-    setSyncStatus('Offline', 'var(--high)');
-    console.error('Firebase listen error:', error);
+  // Crucial Fix: Fast-forward our local ID counter so we don't overwrite synced tasks
+  active.forEach(function(t){
+    var idNum = parseInt(t.bid.replace('b',''));
+    if(!isNaN(idNum) && idNum >= uid) uid = idNum + 1;
   });
-  fbReady = true;
+
+  renderBoard();
+  updateStats();
+}
+
+function fbListen(){
+  // Claude's Fix Part 1: Initial load
+  boardRef.once('value').then(function(snap){
+    var data = snap.val();
+    if(data) applyIncomingData(data);
+
+    // Claude's Fix Part 2: Start the live listener
+    boardRef.on('value', function(liveSnap){
+      if(isSaving) return; // Ignore the echo
+      
+      var liveData = liveSnap.val();
+      if(liveData) {
+        applyIncomingData(liveData);
+        setSyncStatus('Updated from another device', 'var(--accent)');
+        setTimeout(function(){setSyncStatus('');},3000);
+      }
+    });
+  });
 }
 
 // Patch all state-changing functions to also save to Firebase
 var _origToggleDone = toggleDone;
-function toggleDone(bid,mins,cb){
-  _origToggleDone(bid,mins,cb);
-  fbSave();
-}
+toggleDone = function(bid,mins,cb){ _origToggleDone(bid,mins,cb); fbSave(); };
 
 var _origRmCard = rmCard;
-function rmCard(bid){
-  _origRmCard(bid);
-  fbSave();
-}
+rmCard = function(bid){ _origRmCard(bid); fbSave(); };
 
 var _origPush = push;
-function push(id){
-  _origPush(id);
-  fbSave();
-}
+push = function(id){ _origPush(id); fbSave(); };
 
 var _origSaveEdit = saveEdit;
-function saveEdit(bid){
-  _origSaveEdit(bid);
-  fbSave();
-}
+saveEdit = function(bid){ _origSaveEdit(bid); fbSave(); };
 
 var _origDoClear = doClear;
-function doClear(){
+doClear = function(){
   _origDoClear();
-  boardRef.set(null); // wipe Firebase too
-}
+  isSaving = true;
+  boardRef.set(null).then(function(){
+    setTimeout(function(){ isSaving = false; }, 500);
+  });
+};
 
 // ── INIT ──────────────────────────────────────────────────
 renderLib();
