@@ -116,6 +116,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
 .bc.done{opacity:.4;filter:grayscale(80%);transition:all .5s;}
 .ct{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;}
 .ctitle{font-weight:700;font-size:.92em;line-height:1.4;flex-grow:1;}
+.room-badge{color:var(--accent);font-size:0.65em;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
 .crmv{background:transparent;border:none;color:var(--muted);cursor:pointer;
   padding:2px 5px;border-radius:4px;font-size:.85em;transition:color .15s;}
 .crmv:hover{color:var(--high);}
@@ -192,7 +193,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
 .pm-btn.cancel{color:var(--muted);}
 #pm-file{display:none;}
 
-/* ── FULLSCREEN MODE (CSS class based) ── */
+/* ── FULLSCREEN MODE ── */
 body.fs-mode #sidebar{display:none!important;}
 body.fs-mode #filter-bar{display:none;}
 body.fs-mode #mob-btn{display:none!important;}
@@ -240,7 +241,6 @@ body.fs-mode #scroll{padding:20px 32px;}
 
 <div id="overlay" onclick="toggleSB()"></div>
 
-<!-- CLEAR CONFIRM -->
 <div id="modal">
   <div class="mbox">
     <h3>CLEAR BOARD?</h3>
@@ -252,7 +252,6 @@ body.fs-mode #scroll{padding:20px 32px;}
   </div>
 </div>
 
-<!-- PHOTO MODAL - shown after file is chosen -->
 <div id="photo-modal">
   <div class="pm-box">
     <h3>Save Photo Proof?</h3>
@@ -263,10 +262,8 @@ body.fs-mode #scroll{padding:20px 32px;}
     </div>
   </div>
 </div>
-<!-- File input at body level so Android triggers it reliably -->
 <input type="file" id="pm-file" accept="image/*" style="position:fixed;left:-9999px;opacity:0;width:1px;height:1px;" onchange="pmPreview(this)">
 
-<!-- SIDEBAR -->
 <div id="sidebar">
   <button id="close-sb" onclick="toggleSB()">X</button>
   <div class="sidebar-top">
@@ -299,7 +296,6 @@ body.fs-mode #scroll{padding:20px 32px;}
   <div id="lib"></div>
 </div>
 
-<!-- MAIN -->
 <div id="main">
   <div id="hdr">
     <div class="hdr-left">
@@ -323,11 +319,20 @@ body.fs-mode #scroll{padding:20px 32px;}
     <button class="fb fh" onclick="setF('High',this)">High</button>
     <button class="fb fm" onclick="setF('Med',this)">Med</button>
     <button class="fb fl" onclick="setF('Low',this)">Low</button>
+    
     <button class="fb" onclick="setF('Andrew',this)">Andrew</button>
     <button class="fb" onclick="setF('Toby',this)">Toby</button>
     <button class="fb" onclick="setF('Joella',this)">Joella</button>
     <button class="fb" onclick="setF('Avett',this)">Avett</button>
     <button class="fb" onclick="setF('Anyone',this)">Anyone</button>
+
+    <div style="border-left: 1px solid var(--border); margin: 0 5px; height: 20px;"></div>
+    <button class="fb" onclick="setF('Kitchen & Dining',this)">Kitchen</button>
+    <button class="fb" onclick="setF('Living Room',this)">Living Rm</button>
+    <button class="fb" onclick="setF('Family Room',this)">Family Rm</button>
+    <button class="fb" onclick="setF('Bedrooms & Hallways',this)">Beds/Halls</button>
+    <button class="fb" onclick="setF('Bathrooms',this)">Baths</button>
+    <button class="fb" onclick="setF('Outdoor & Garage',this)">Garage</button>
   </div>
 
   <div id="scroll">
@@ -345,6 +350,7 @@ var DB = {
     {id:"lg2",t:"Fix Mosaic Phone Bill Payee",m:20,o:"Andrew",p:"High"}
   ],
   "Kitchen & Dining": [
+    {id:"k0",t:"🌪️ 10-Min Clutter Sweep (Cups, Random Items)",m:10,o:"Anyone",p:"High"},
     {id:"k1",t:"Unload Top Rack",m:4,o:"Anyone",p:"High"},
     {id:"k2",t:"Unload Bottom Rack",m:4,o:"Anyone",p:"High"},
     {id:"k3",t:"Load Dirty Sink Dishes",m:5,o:"Anyone",p:"High"},
@@ -359,6 +365,7 @@ var DB = {
     {id:"k12",t:"Organize Under Sink",m:15,o:"Andrew",p:"Low"}
   ],
   "Living Room": [
+    {id:"lr0",t:"🌪️ 10-Min Clutter Sweep (Cups, Clothes, Pillows)",m:10,o:"Anyone",p:"High"},
     {id:"lr1",t:"Pick Up Kid Trash/Wrappers",m:5,o:"Toby",p:"High"},
     {id:"lr2",t:"Vacuum Furniture/Couch",m:10,o:"Toby",p:"Med"},
     {id:"lr3",t:"Clean Sliding Glass Window",m:5,o:"Joella",p:"Low"},
@@ -370,6 +377,7 @@ var DB = {
     {id:"lr9",t:"Clear Behind Main Couch",m:5,o:"Anyone",p:"Med"}
   ],
   "Family Room": [
+    {id:"fr0",t:"🌪️ 10-Min Clutter Sweep (Cups, Clothes, Pillows)",m:10,o:"Anyone",p:"High"},
     {id:"fr1",t:"Organize Computer Desk",m:15,o:"Andrew",p:"Med"},
     {id:"fr2",t:"Organize Book Shelf",m:10,o:"Joella",p:"Low"},
     {id:"fr3",t:"Organize Board Game Shelf",m:10,o:"Anyone",p:"Low"},
@@ -380,6 +388,7 @@ var DB = {
     {id:"fr8",t:"Vacuum Family Room Floor",m:10,o:"Toby",p:"High"}
   ],
   "Bedrooms & Hallways": [
+    {id:"bh0",t:"🌪️ 10-Min Clutter Sweep (Cups, Clothes, Trash)",m:10,o:"Anyone",p:"High"},
     {id:"bh1",t:"Clear Andrew's Side of Bed",m:10,o:"Andrew",p:"High"},
     {id:"bh2",t:"Put Andrew's Laundry Away",m:10,o:"Andrew",p:"Med"},
     {id:"bh3",t:"Vacuum Master Bedroom",m:10,o:"Andrew",p:"Low"},
@@ -388,6 +397,7 @@ var DB = {
     {id:"bh6",t:"Organize Washer/Dryer Area",m:15,o:"Anyone",p:"Low"}
   ],
   "Bathrooms": [
+    {id:"ba0",t:"🌪️ 5-Min Clutter Sweep (Towels, Clothes, Trash)",m:5,o:"Anyone",p:"High"},
     {id:"ba1",t:"Downstairs: Put Items Away",m:5,o:"Anyone",p:"High"},
     {id:"ba2",t:"Downstairs: Wipe Counters/Mirror",m:5,o:"Anyone",p:"Med"},
     {id:"ba3",t:"Downstairs: Clean Toilet",m:10,o:"Anyone",p:"Med"},
@@ -397,6 +407,7 @@ var DB = {
     {id:"ba7",t:"Upstairs: Fix Cold-Water Sink",m:20,o:"Andrew",p:"Low"}
   ],
   "Outdoor & Garage": [
+    {id:"og0",t:"🌪️ 10-Min Clutter Sweep (Random Items, Trash)",m:10,o:"Anyone",p:"High"},
     {id:"og1",t:"Garage: Clear Tool Space",m:15,o:"Andrew",p:"Low"},
     {id:"og2",t:"Garage: Clear Workbench",m:15,o:"Andrew",p:"Low"},
     {id:"og3",t:"Garage: Clear Entryway Floor",m:15,o:"Toby",p:"High"},
@@ -409,15 +420,9 @@ var DB = {
 
 // ── STATE ─────────────────────────────────────────────────
 var active=[], done=new Set(), xp=0, filt='all', uid=1;
-
-// Per-card timer state: timers[bid] = {sec, paused, interval}
 var timers = {};
-
-// Photo modal state
 var pmTargetBid = null;
 var pmDataUrl   = null;
-
-// Fullscreen state
 var fsMode = false;
 
 // ── LIBRARY ───────────────────────────────────────────────
@@ -461,60 +466,41 @@ function renderLib() {
 // ── PUSH TO BOARD ─────────────────────────────────────────
 function push(id) {
   var task=null;
-  Object.values(DB).forEach(function(arr){arr.forEach(function(t){if(t.id===id)task=t;});});
+  var catName="Unknown Room";
+  Object.keys(DB).forEach(function(cat){
+    DB[cat].forEach(function(t){
+      if(t.id===id) { task=t; catName=cat; }
+    });
+  });
   if(!task)return;
   var bid='b'+(uid++);
-  active.push({id:task.id,t:task.t,m:task.m,o:task.o,p:task.p,bid:bid,photo:null});
-  renderBoard(); updateStats();
+  // Add category (c) to the active task object
+  active.push({id:task.id, c:catName, t:task.t, m:task.m, o:task.o, p:task.p, bid:bid, photo:null});
+  renderBoard(); updateStats(); fbSave();
   if(window.innerWidth<=768) toggleSB();
 }
 
 // ── EDIT DROPDOWN BUILDERS ────────────────────────────────
 var TASK_NAMES = [
-  "Shower, Floss & Brush Teeth","Take a Quiet Rest Break",
-  "Bank: Get Amber's Bday Money","Fix Mosaic Phone Bill Payee",
-  "Unload Top Rack","Unload Bottom Rack","Load Dirty Sink Dishes",
-  "Hand Wash Big Items","Wipe Counters","Sweep Kitchen Floor",
-  "Mop Kitchen Floor","Wipe Inside Microwave","Reorganize Dining Table Space",
-  "Reorganize Bar Area","Fix Wobbly Faucet","Organize Under Sink",
-  "Pick Up Kid Trash/Wrappers","Vacuum Furniture/Couch","Clean Sliding Glass Window",
-  "Fold 1 Basket of Laundry","Vacuum Floors & Steps","Reorganize Under TV",
-  "Reorganize Next to Grey Couch","Reorganize Amber's Side","Clear Behind Main Couch",
-  "Organize Computer Desk","Organize Book Shelf","Organize Board Game Shelf",
-  "Clear Couch Area","Clear Electronics Workspace","Avett's Lego Workspace",
-  "Organize Jackets/Hats/Shoes","Vacuum Family Room Floor",
-  "Clear Andrew's Side of Bed","Put Andrew's Laundry Away","Vacuum Master Bedroom",
-  "Clean & Reorganize Avett's Room","Pick Up Hallway Clothes","Organize Washer/Dryer Area",
-  "Downstairs: Put Items Away","Downstairs: Wipe Counters/Mirror","Downstairs: Clean Toilet",
-  "Downstairs: Mop Floor","Upstairs: Wipe Down Shower","Upstairs: Mop Floor",
-  "Upstairs: Fix Cold-Water Sink","Garage: Clear Tool Space","Garage: Clear Workbench",
-  "Garage: Clear Entryway Floor","Backyard: Sawzall Furniture","Backyard: Burn Wood/Debris",
-  "Backyard: Plant Grass/Gravel Path","Backyard: Edging & Dirt Guard"
+  "🌪️ 10-Min Clutter Sweep (Cups, Random Items)","🌪️ 10-Min Clutter Sweep (Cups, Clothes, Pillows)","🌪️ 10-Min Clutter Sweep (Cups, Clothes, Trash)","🌪️ 5-Min Clutter Sweep (Towels, Clothes, Trash)","🌪️ 10-Min Clutter Sweep (Random Items, Trash)",
+  "Shower, Floss & Brush Teeth","Take a Quiet Rest Break","Bank: Get Amber's Bday Money","Fix Mosaic Phone Bill Payee","Unload Top Rack","Unload Bottom Rack","Load Dirty Sink Dishes","Hand Wash Big Items","Wipe Counters","Sweep Kitchen Floor","Mop Kitchen Floor","Wipe Inside Microwave","Reorganize Dining Table Space","Reorganize Bar Area","Fix Wobbly Faucet","Organize Under Sink","Pick Up Kid Trash/Wrappers","Vacuum Furniture/Couch","Clean Sliding Glass Window","Fold 1 Basket of Laundry","Vacuum Floors & Steps","Reorganize Under TV","Reorganize Next to Grey Couch","Reorganize Amber's Side","Clear Behind Main Couch","Organize Computer Desk","Organize Book Shelf","Organize Board Game Shelf","Clear Couch Area","Clear Electronics Workspace","Avett's Lego Workspace","Organize Jackets/Hats/Shoes","Vacuum Family Room Floor","Clear Andrew's Side of Bed","Put Andrew's Laundry Away","Vacuum Master Bedroom","Clean & Reorganize Avett's Room","Pick Up Hallway Clothes","Organize Washer/Dryer Area","Downstairs: Put Items Away","Downstairs: Wipe Counters/Mirror","Downstairs: Clean Toilet","Downstairs: Mop Floor","Upstairs: Wipe Down Shower","Upstairs: Mop Floor","Upstairs: Fix Cold-Water Sink","Garage: Clear Tool Space","Garage: Clear Workbench","Garage: Clear Entryway Floor","Backyard: Sawzall Furniture","Backyard: Burn Wood/Debris","Backyard: Plant Grass/Gravel Path","Backyard: Edging & Dirt Guard"
 ];
 
 var OWNERS = ["Andrew","Toby","Joella","Katelynn","Avett","Aliena","Anyone","Toby/Joella"];
 
 function buildNameOpts(current){
-  // If current name isn't in the list (e.g. custom task), add it at top
   var names = TASK_NAMES.slice();
   if(names.indexOf(current)<0) names.unshift(current);
   return names.map(function(n){
     return '<option value="'+n.replace(/"/g,'&quot;')+'"'+(n===current?' selected':'')+'>'+n+'</option>';
   }).join('');
 }
-
 function buildTimeOpts(current){
   var html='';
-  for(var i=5;i<=90;i+=5){
-    html+='<option value="'+i+'"'+(i===current?' selected':'')+'>'+i+' min</option>';
-  }
-  // If current isn't a multiple of 5, add it
-  if(current%5!==0){
-    html='<option value="'+current+'" selected>'+current+' min</option>'+html;
-  }
+  for(var i=5;i<=90;i+=5){ html+='<option value="'+i+'"'+(i===current?' selected':'')+'>'+i+' min</option>'; }
+  if(current%5!==0){ html='<option value="'+current+'" selected>'+current+' min</option>'+html; }
   return html;
 }
-
 function buildOwnerOpts(current){
   var owners = OWNERS.slice();
   if(owners.indexOf(current)<0) owners.unshift(current);
@@ -532,32 +518,36 @@ function renderBoard() {
     board.innerHTML='<div class="empty"><div class="empty-icon">&#127919;</div><p>Quest Board is empty &mdash; add tasks from the library!</p></div>';
     return;
   }
+  
   var vis=active.filter(function(t){
-    if(filt==='all')return true;
-    if(['High','Med','Low'].indexOf(filt)>=0)return t.p===filt;
-    return t.o.toLowerCase().indexOf(filt.toLowerCase())>=0;
+    if(filt==='all') return true;
+    if(['High','Med','Low'].indexOf(filt)>=0) return t.p===filt;
+    if(['Andrew','Toby','Joella','Avett','Anyone'].indexOf(filt)>=0) return t.o.toLowerCase().indexOf(filt.toLowerCase())>=0;
+    // Room Filter Match (checks if the category string matches the filter)
+    return (t.c || '').toLowerCase().indexOf(filt.toLowerCase())>=0;
   });
+  
   if(!vis.length){
     board.innerHTML='<div class="empty"><div class="empty-icon">&#128269;</div><p>No tasks match this filter.</p></div>';
     return;
   }
+  
   vis.forEach(function(t){
     var isDone=done.has(t.bid);
     var pc=pmap[t.p];
     var hasTimer=timers[t.bid];
+    var roomName = t.c || 'Custom Task';
     var d=document.createElement('div');
     d.className='bc '+pc+(isDone?' done':'');
     d.id='card-'+t.bid;
 
     var photoHtml='';
-    if(t.photo){
-      photoHtml='<img class="card-photo show" id="ph-'+t.bid+'" src="'+t.photo+'" alt="Proof">';
-    } else {
-      photoHtml='<img class="card-photo" id="ph-'+t.bid+'" alt="Proof">';
-    }
+    if(t.photo){ photoHtml='<img class="card-photo show" id="ph-'+t.bid+'" src="'+t.photo+'" alt="Proof">'; } 
+    else { photoHtml='<img class="card-photo" id="ph-'+t.bid+'" alt="Proof">'; }
 
     d.innerHTML=
-      '<div class="ct"><div class="ctitle" id="ctitle-'+t.bid+'">'+t.t+'</div>'
+      '<div class="room-badge">📍 ' + roomName + '</div>'
+      +'<div class="ct"><div class="ctitle" id="ctitle-'+t.bid+'">'+t.t+'</div>'
       +'<button class="crmv" onclick="rmCard(\''+t.bid+'\')">X</button></div>'
       +'<div class="cmeta"><span>'+t.m+' min</span>'
       +'<span class="owner">'+t.o+'</span>'
@@ -645,38 +635,8 @@ function saveEdit(bid){
   var newPri  =priEl.value;
   var pmap={High:'H',Med:'M',Low:'L'};
 
-  // Update task object
   task.t=newName; task.m=newTime; task.o=newOwner; task.p=newPri;
-
-  // Update card visuals without full re-render (preserves timer state)
-  var card=document.getElementById('card-'+bid);
-  if(card){
-    // Update border color class
-    card.className='bc '+pmap[newPri]+(done.has(bid)?' done':'');
-    card.id='card-'+bid;
-  }
-  var titleEl=document.getElementById('ctitle-'+bid);
-  if(titleEl)titleEl.textContent=newName;
-
-  var badgeEl=document.getElementById('cbadge-'+bid);
-  if(badgeEl){badgeEl.className='badge '+newPri;badgeEl.textContent=newPri;}
-
-  // Update meta row (mins + owner) — find and rebuild just the cmeta div
-  var cmeta=card?card.querySelector('.cmeta'):null;
-  if(cmeta){
-    cmeta.innerHTML='<span>'+newTime+' min</span>'
-      +'<span class="owner">'+newOwner+'</span>'
-      +'<span class="badge '+newPri+'" id="cbadge-'+bid+'">'+newPri+'</span>';
-  }
-
-  // If timer is NOT running, reset its display to new time
-  if(!timers[bid]){
-    var td=document.getElementById('td-'+bid);
-    if(td)td.textContent=fmt(newTime*60);
-  }
-
-  // Close the edit panel
-  toggleEdit(bid);
+  renderBoard();
 }
 
 function toggleLibEdit(id){
@@ -689,7 +649,6 @@ function toggleLibEdit(id){
 }
 
 function saveLibEdit(id){
-  // Find task in DB
   var task=null;
   Object.values(DB).forEach(function(arr){arr.forEach(function(t){if(t.id===id)task=t;});});
   if(!task)return;
@@ -700,35 +659,16 @@ function saveLibEdit(id){
   var newPri  =document.getElementById('lei-pri-'+id).value;
   var pmap={High:'H',Med:'M',Low:'L'};
 
-  // Update DB object
   task.t=newName; task.m=newTime; task.o=newOwner; task.p=newPri;
-
-  // Update library card visuals directly without full re-render
-  var card=document.getElementById('lc-'+id);
-  if(card){
-    card.className='lib-card '+pmap[newPri];
-  }
-  var lt=document.getElementById('lt-'+id);  if(lt)lt.textContent=newName;
-  var lm=document.getElementById('lm-'+id);  if(lm)lm.textContent=newTime+'m';
-  var lo=document.getElementById('lo-'+id);  if(lo)lo.textContent=newOwner;
-  var lb=document.getElementById('lb-'+id);
-  if(lb){lb.className='badge '+newPri; lb.textContent=newPri;}
-
-  // Close edit panel
-  toggleLibEdit(id);
+  renderLib();
 }
 
 // ── PER-CARD TIMERS ───────────────────────────────────────
 function timerStart(bid,mins){
-  // If timer already running for this card, just toggle pause
   if(timers[bid]){timerPauseToggle(bid);return;}
-
   var task=active.filter(function(t){return t.bid===bid;})[0];
   if(!task)return;
-
   timers[bid]={sec:mins*60,paused:false,interval:null};
-
-  // Show timer row and mark button active
   var row=document.getElementById('tr-'+bid);
   var btn=document.getElementById('tb-'+bid);
   var pb=document.getElementById('tp-'+bid);
@@ -753,7 +693,6 @@ function timerStart(bid,mins){
       if(td)td.classList.remove('red');
       if(tl)tl.textContent='Complete!';
       alarm();
-      // Auto-clean after 3s
       setTimeout(function(){timerStop(bid);},3000);
     }
   },1000);
@@ -769,41 +708,28 @@ function timerPauseToggle(bid){
 }
 
 function timerStop(bid){
-  if(timers[bid]){
-    clearInterval(timers[bid].interval);
-    delete timers[bid];
-  }
+  if(timers[bid]){ clearInterval(timers[bid].interval); delete timers[bid]; }
   var row=document.getElementById('tr-'+bid);
   var btn=document.getElementById('tb-'+bid);
   var td=document.getElementById('td-'+bid);
   if(row)row.classList.remove('on');
   if(btn)btn.classList.remove('timer-active');
-  // Reset display to task duration
   var task=active.filter(function(t){return t.bid===bid;})[0];
   if(task&&td)td.textContent=fmt(task.m*60);
 }
 
 // ── PHOTO MODAL ───────────────────────────────────────────
 function openPhoto(bid){
-  // Store target, then trigger file input directly from this user gesture
-  pmTargetBid=bid;
-  pmDataUrl=null;
+  pmTargetBid=bid; pmDataUrl=null;
   var inp=document.getElementById('pm-file');
-  inp.value='';
-  inp.click();
+  inp.value=''; inp.click();
 }
-
-function pmChoose(){
-  // Legacy - no longer used but kept to avoid errors
-  document.getElementById('pm-file').click();
-}
-
+function pmChoose(){ document.getElementById('pm-file').click(); }
 function pmPreview(inp){
   if(!inp.files||!inp.files[0])return;
   var r=new FileReader();
   r.onload=function(e){
     pmDataUrl=e.target.result;
-    // Show confirm modal with preview
     var prev=document.getElementById('pm-preview');
     prev.src=pmDataUrl; prev.classList.add('show');
     document.getElementById('pm-save').style.display='block';
@@ -811,17 +737,13 @@ function pmPreview(inp){
   };
   r.readAsDataURL(inp.files[0]);
 }
-
 function pmSave(){
   if(!pmTargetBid||!pmDataUrl)return;
-  // Store in active task object
   active.forEach(function(t){if(t.bid===pmTargetBid)t.photo=pmDataUrl;});
-  // Update card image directly
   var img=document.getElementById('ph-'+pmTargetBid);
   if(img){img.src=pmDataUrl;img.classList.add('show');}
   pmClose();
 }
-
 function pmClose(){
   document.getElementById('photo-modal').classList.remove('on');
   var prev=document.getElementById('pm-preview');
@@ -847,41 +769,20 @@ function updateStats(){
 // ── FULLSCREEN ────────────────────────────────────────────
 function toggleFS(){
   if(!fsMode){
-    // Enter fullscreen
     var el=document.documentElement;
     var req=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
-    if(req){
-      req.call(el).catch(function(){}); // native attempt, ignore errors
-    }
-    applyFSClass(); // always apply CSS mode immediately
+    if(req) req.call(el).catch(function(){}); 
+    applyFSClass(); 
   } else {
-    // Exit fullscreen
     var ex=document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen||document.msExitFullscreen;
-    if(ex && (document.fullscreenElement||document.webkitFullscreenElement)){
-      ex.call(document).catch(function(){});
-    }
-    removeFSClass(); // always remove CSS mode immediately
+    if(ex && (document.fullscreenElement||document.webkitFullscreenElement)) ex.call(document).catch(function(){});
+    removeFSClass(); 
   }
 }
-
-function applyFSClass(){
-  document.body.classList.add('fs-mode');
-  document.getElementById('fs-btn').textContent='Exit Full';
-  fsMode=true;
-}
-function removeFSClass(){
-  document.body.classList.remove('fs-mode');
-  document.getElementById('fs-btn').textContent='Fullscreen';
-  fsMode=false;
-}
-
-// Sync CSS state if browser exits native fullscreen on its own (e.g. back button)
-document.addEventListener('fullscreenchange',function(){
-  if(!document.fullscreenElement&&!document.webkitFullscreenElement) removeFSClass();
-});
-document.addEventListener('webkitfullscreenchange',function(){
-  if(!document.webkitFullscreenElement&&!document.fullscreenElement) removeFSClass();
-});
+function applyFSClass(){ document.body.classList.add('fs-mode'); document.getElementById('fs-btn').textContent='Exit Full'; fsMode=true; }
+function removeFSClass(){ document.body.classList.remove('fs-mode'); document.getElementById('fs-btn').textContent='Fullscreen'; fsMode=false; }
+document.addEventListener('fullscreenchange',function(){ if(!document.fullscreenElement&&!document.webkitFullscreenElement) removeFSClass(); });
+document.addEventListener('webkitfullscreenchange',function(){ if(!document.webkitFullscreenElement&&!document.fullscreenElement) removeFSClass(); });
 
 // ── AUDIO ─────────────────────────────────────────────────
 function getAC(){if(!window._ac)window._ac=new(window.AudioContext||window.webkitAudioContext)();return window._ac;}
@@ -910,8 +811,7 @@ function alarm(){
 // ── CONFETTI ──────────────────────────────────────────────
 function boom(){
   if(typeof confetti==='undefined')return;
-  confetti({particleCount:80,spread:70,origin:{y:.6},
-    colors:['#00e5ff','#7c4dff','#ff4081','#2ed573','#ffa502']});
+  confetti({particleCount:80,spread:70,origin:{y:.6}, colors:['#00e5ff','#7c4dff','#ff4081','#2ed573','#ffa502']});
   setTimeout(function(){confetti({particleCount:40,spread:100,origin:{y:.4}});},250);
 }
 
@@ -933,24 +833,13 @@ function addCustom(){
 
 // ── CLEAR ─────────────────────────────────────────────────
 function doClear(){
-  // Stop all timers
   Object.keys(timers).forEach(function(bid){timerStop(bid);});
   active=[]; done.clear(); xp=0;
   renderBoard(); updateStats(); closeModal();
 }
 function closeModal(){document.getElementById('modal').classList.remove('on');}
-
-// ── SIDEBAR ───────────────────────────────────────────────
-function toggleSB(){
-  document.getElementById('sidebar').classList.toggle('on');
-  document.getElementById('overlay').classList.toggle('on');
-}
-
-// ── UTIL ──────────────────────────────────────────────────
-function fmt(s){
-  var neg=s<0?'-':'';s=Math.abs(s);
-  return neg+pad(Math.floor(s/60))+':'+pad(s%60);
-}
+function toggleSB(){ document.getElementById('sidebar').classList.toggle('on'); document.getElementById('overlay').classList.toggle('on'); }
+function fmt(s){ var neg=s<0?'-':'';s=Math.abs(s); return neg+pad(Math.floor(s/60))+':'+pad(s%60); }
 function pad(n){return n<10?'0'+n:''+n;}
 
 // ── FIREBASE SYNC ─────────────────────────────────────────
@@ -968,21 +857,18 @@ var firebaseConfig = {
 var fbApp = firebase.initializeApp(firebaseConfig);
 var fbDb  = firebase.database();
 var boardRef = fbDb.ref('board');
-
-// Claude's flag to ignore echoes
 var isSaving = false;
 
-// Show a subtle sync status indicator
 function setSyncStatus(msg, color){
   var el=document.getElementById('sync-status');
   if(el){el.textContent=msg; el.style.color=color||'var(--muted)';}
 }
 
 function fbSave(){
-  isSaving = true; // Tell the app WE are making the change
+  isSaving = true; 
   var payload = {
     active: active.map(function(t){
-      return {id:t.id,t:t.t,m:t.m,o:t.o,p:t.p,bid:t.bid};
+      return {id:t.id, c:(t.c||'Misc'), t:t.t, m:t.m, o:t.o, p:t.p, bid:t.bid};
     }),
     done:   Array.from(done),
     xp:     xp
@@ -991,7 +877,6 @@ function fbSave(){
   boardRef.set(payload).then(function(){
     setSyncStatus('Synced', 'var(--low)');
     setTimeout(function(){setSyncStatus('');},2000);
-    // Clear the flag after a brief delay so the echo passes
     setTimeout(function(){ isSaving = false; }, 500); 
   }).catch(function(e){
     isSaving = false;
@@ -1005,7 +890,6 @@ function applyIncomingData(data) {
   done   = new Set(data.done || []);
   xp     = data.xp || 0;
 
-  // Crucial Fix: Fast-forward our local ID counter so we don't overwrite synced tasks
   active.forEach(function(t){
     var idNum = parseInt(t.bid.replace('b',''));
     if(!isNaN(idNum) && idNum >= uid) uid = idNum + 1;
@@ -1016,15 +900,12 @@ function applyIncomingData(data) {
 }
 
 function fbListen(){
-  // Claude's Fix Part 1: Initial load
   boardRef.once('value').then(function(snap){
     var data = snap.val();
     if(data) applyIncomingData(data);
 
-    // Claude's Fix Part 2: Start the live listener
     boardRef.on('value', function(liveSnap){
-      if(isSaving) return; // Ignore the echo
-      
+      if(isSaving) return; 
       var liveData = liveSnap.val();
       if(liveData) {
         applyIncomingData(liveData);
@@ -1035,7 +916,7 @@ function fbListen(){
   });
 }
 
-// Patch all state-changing functions to also save to Firebase
+// Patch all state-changing functions
 var _origToggleDone = toggleDone;
 toggleDone = function(bid,mins,cb){ _origToggleDone(bid,mins,cb); fbSave(); };
 
@@ -1061,7 +942,7 @@ doClear = function(){
 renderLib();
 renderBoard();
 updateStats();
-fbListen(); // connect to Firebase and start listening
+fbListen(); 
 </script>
 </body>
 </html>
