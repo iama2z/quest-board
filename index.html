@@ -309,15 +309,10 @@ body.fs-mode #scroll{padding:20px 32px;}
       <span id="sync-status" style="font-size:.75em;transition:color .3s;"></span>
     </div>
     <div class="hdr-btns">
-      <button class="hbtn" onclick="document.getElementById('modal').classList.add('on')">Clear Board</button>
-        <div class="hdr-btns">
   <button class="hbtn" onclick="document.getElementById('modal').classList.add('on')">Clear Board</button>
-  <button class="hbtn" id="undo-btn" style="display:none; color:var(--med); border-color:var(--med);" onclick="undoClear()">Undo Clear</button>
+  <button class="hbtn" id="undo-btn" style="display:none; color:var(--med); border-color:var(--med);" onclick="undoClear()">Undo</button>
   <button class="hbtn" id="fs-btn" onclick="toggleFS()">Fullscreen</button>
 </div>
-      <button class="hbtn" id="fs-btn" onclick="toggleFS()">Fullscreen</button>
-    </div>
-  </div>
 
   <div id="filter-bar">
     <button class="fb on" onclick="setF('all',this)">All</button>
@@ -450,7 +445,7 @@ function renderLib() {
           +'<button class="btn-push" style="background:rgba(255,165,2,.1);border-color:rgba(255,165,2,.3);color:var(--med)" id="leb-'+t.id+'" onclick="toggleLibEdit(\''+t.id+'\')">Edit</button>'
           +'</div>'
           +'<div class="edit-panel" id="lep-'+t.id+'" style="width:100%;margin-top:4px;">'
-          +'<select id="lei-name-'+t.id+'">'+buildNameOpts(t.t)+'</select>'
+          +'<input type="text" id="lei-name-'+t.id+'" value="'+t.t.replace(/"/g,'&quot;')+'">'
           +'<div class="edit-row">'
           +'<select id="lei-time-'+t.id+'">'+buildTimeOpts(t.m)+'</select>'
           +'<select id="lei-owner-'+t.id+'">'+buildOwnerOpts(t.o)+'</select>'
@@ -486,20 +481,9 @@ function push(id) {
 }
 
 // ── EDIT DROPDOWN BUILDERS ────────────────────────────────
-var TASK_NAMES = [
-  "🌪️ 10-Min Clutter Sweep (Cups, Random Items)","🌪️ 10-Min Clutter Sweep (Cups, Clothes, Pillows)","🌪️ 10-Min Clutter Sweep (Cups, Clothes, Trash)","🌪️ 5-Min Clutter Sweep (Towels, Clothes, Trash)","🌪️ 10-Min Clutter Sweep (Random Items, Trash)",
-  "Shower, Floss & Brush Teeth","Take a Quiet Rest Break","Bank: Get Amber's Bday Money","Fix Mosaic Phone Bill Payee","Unload Top Rack","Unload Bottom Rack","Load Dirty Sink Dishes","Hand Wash Big Items","Wipe Counters","Sweep Kitchen Floor","Mop Kitchen Floor","Wipe Inside Microwave","Reorganize Dining Table Space","Reorganize Bar Area","Fix Wobbly Faucet","Organize Under Sink","Pick Up Kid Trash/Wrappers","Vacuum Furniture/Couch","Clean Sliding Glass Window","Fold 1 Basket of Laundry","Vacuum Floors & Steps","Reorganize Under TV","Reorganize Next to Grey Couch","Reorganize Amber's Side","Clear Behind Main Couch","Organize Computer Desk","Organize Book Shelf","Organize Board Game Shelf","Clear Couch Area","Clear Electronics Workspace","Avett's Lego Workspace","Organize Jackets/Hats/Shoes","Vacuum Family Room Floor","Clear Andrew's Side of Bed","Put Andrew's Laundry Away","Vacuum Master Bedroom","Clean & Reorganize Avett's Room","Pick Up Hallway Clothes","Organize Washer/Dryer Area","Downstairs: Put Items Away","Downstairs: Wipe Counters/Mirror","Downstairs: Clean Toilet","Downstairs: Mop Floor","Upstairs: Wipe Down Shower","Upstairs: Mop Floor","Upstairs: Fix Cold-Water Sink","Garage: Clear Tool Space","Garage: Clear Workbench","Garage: Clear Entryway Floor","Backyard: Sawzall Furniture","Backyard: Burn Wood/Debris","Backyard: Plant Grass/Gravel Path","Backyard: Edging & Dirt Guard"
-];
 
 var OWNERS = ["Andrew","Toby","Joella","Katelynn","Avett","Aliena","Anyone","Toby/Joella"];
 
-function buildNameOpts(current){
-  var names = TASK_NAMES.slice();
-  if(names.indexOf(current)<0) names.unshift(current);
-  return names.map(function(n){
-    return '<option value="'+n.replace(/"/g,'&quot;')+'"'+(n===current?' selected':'')+'>'+n+'</option>';
-  }).join('');
-}
 function buildTimeOpts(current){
   var html='';
   for(var i=5;i<=90;i+=5){ html+='<option value="'+i+'"'+(i===current?' selected':'')+'>'+i+' min</option>'; }
@@ -559,7 +543,7 @@ function renderBoard() {
       +'<span class="badge '+t.p+'" id="cbadge-'+t.bid+'">'+t.p+'</span></div>'
       // Inline edit panel
       +'<div class="edit-panel" id="ep-'+t.bid+'">'
-      +'<select id="ei-name-'+t.bid+'">'+buildNameOpts(t.t)+'</select>'
+      +'<input type="text" id="ei-name-'+t.bid+'" value="'+t.t.replace(/"/g,'&quot;')+'">'
       +'<div class="edit-row">'
       +'<select id="ei-time-'+t.bid+'">'+buildTimeOpts(t.m)+'</select>'
       +'<select id="ei-owner-'+t.bid+'">'+buildOwnerOpts(t.o)+'</select>'
