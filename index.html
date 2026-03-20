@@ -44,9 +44,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
   min-height: 0;
   overflow-y: auto;
   padding: 10px 10px 80px 10px;
-  bar-width: thin;
-  bar-color: var(--border) transparent;
-  -webkit-overflow-ing: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  -webkit-overflow-scrolling: touch;
 }
 .cat{margin-bottom:6px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
 .cat-hd{padding:10px 14px;background:var(--card);cursor:pointer;user-select:none;
@@ -113,9 +113,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);
   min-height: 0;
   overflow-y: auto;
   padding: 14px 16px 80px 16px;
-  bar-width: thin;
-  bar-color: var(--border) transparent;
-  -webkit-overflow-ing: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  -webkit-overflow-scrolling: touch;
 }
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:12px;}
 .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);font-size:.9em;}
@@ -214,7 +214,7 @@ body.fs-mode #filter-bar{display:none;}
 body.fs-mode #mob-btn{display:none!important;}
 body.fs-mode #hdr h1{letter-spacing:4px;}
 body.fs-mode .grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
-body.fs-mode #{padding:20px 32px;}
+body.fs-mode #scroll{padding:20px 32px;}
 
 /* ── OVERLAY & CONFIRM ── */
 #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:90;}
@@ -248,8 +248,8 @@ body.fs-mode #{padding:20px 32px;}
   .stats{display:none;}
   .grid{grid-template-columns:1fr;}
 }
-::-webkit-bar{width:4px;}
-::-webkit-bar-thumb{background:var(--border);border-radius:2px;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 </style>
 </head>
 <body>
@@ -350,7 +350,7 @@ body.fs-mode #{padding:20px 32px;}
     <button class="fb" onclick="setF('Outdoor & Garage',this)">Garage</button>
   </div>
 
-  <div id="">
+  <div id="scroll">
     <div class="grid" id="board"></div>
   </div>
 </div>
