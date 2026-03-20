@@ -333,7 +333,7 @@ body.fs-mode #scroll{padding:20px 32px;}
 </div>
 
 <div id="main">
-  <div id="hdr">
+<div id="hdr">
     <div class="hdr-left">
       <button class="hbtn" id="mob-btn" onclick="toggleSB()">Menu</button>
       <h1>Master Quest Board</h1>
@@ -344,13 +344,6 @@ body.fs-mode #scroll{padding:20px 32px;}
       XP: <b id="sx">0</b> &nbsp;
       <span id="sync-status" style="font-size:.75em;transition:color .3s;"></span>
     </div>
-    <div class="hdr-btns">
-  <button class="hbtn" onclick="document.getElementById('modal').classList.add('on')">Clear Board</button>
-  <button class="hbtn" id="undo-btn" style="display:none; color:var(--med); border-color:var(--med);" onclick="undoClear()">Undo</button>
-  <button class="hbtn" id="fs-btn" onclick="toggleFS()">Fullscreen</button>
-</div>
-
-  <div id="filter-bar">
     <button class="fb on" onclick="setF('all',this)">All</button>
     <button class="fb fh" onclick="setF('High',this)">High</button>
     <button class="fb fm" onclick="setF('Med',this)">Med</button>
