@@ -255,6 +255,14 @@ body.fs-mode #scroll{padding:20px 32px;}
 .mno{background:rgba(255,255,255,.04);color:var(--text);}
 .mno:hover{background:rgba(255,255,255,.08);}
 
+#del-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:1000;align-items:center;justify-content:center;}
+#del-modal.on{display:flex;}
+
+@keyframes flash{0%{box-shadow:0 0 0 0 rgba(46,213,115,.8)}70%{box-shadow:0 0 0 18px rgba(46,213,115,0)}100%{box-shadow:0 0 0 0 rgba(46,213,115,0)}}
+.fl{animation:flash .6s ease-out;}
+
+
 @keyframes flash{0%{box-shadow:0 0 0 0 rgba(46,213,115,.8)}70%{box-shadow:0 0 0 18px rgba(46,213,115,0)}100%{box-shadow:0 0 0 0 rgba(46,213,115,0)}}
 .fl{animation:flash .6s ease-out;}
 
@@ -688,11 +696,24 @@ function saveLibEdit(id){
   task.t=newName; task.m=newTime; task.o=newOwner; task.p=newPri;
   renderLib();
 }
+var pendingDeleteId = null;
+
 function deleteLibTask(id) {
+  pendingDeleteId = id;
+  document.getElementById('del-modal').classList.add('on');
+}
+function confirmDeleteLibTask() {
+  if(!pendingDeleteId) return;
   Object.keys(DB).forEach(function(cat) {
-    DB[cat] = DB[cat].filter(function(t) { return t.id !== id; });
+    DB[cat] = DB[cat].filter(function(t) { return t.id !== pendingDeleteId; });
   });
+  pendingDeleteId = null;
+  closeDelModal();
   renderLib();
+}
+function closeDelModal() {
+  document.getElementById('del-modal').classList.remove('on');
+  pendingDeleteId = null;
 }
 
 // ── PER-CARD TIMERS ───────────────────────────────────────
