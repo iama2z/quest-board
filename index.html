@@ -295,7 +295,16 @@ body.fs-mode #scroll{padding:20px 32px;}
     </div>
   </div>
 </div>
-
+<div id="del-modal">
+  <div class="mbox">
+    <h3>DELETE TASK?</h3>
+    <p>Remove this task from the library permanently?</p>
+    <div class="mbtns">
+      <button class="myes" onclick="confirmDeleteLibTask()">Yes, Delete</button>
+      <button class="mno" onclick="closeDelModal()">Cancel</button>
+    </div>
+  </div>
+</div>
 <div id="photo-modal">
   <div class="pm-box">
     <h3>Save Photo Proof?</h3>
