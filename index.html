@@ -259,9 +259,24 @@ body.fs-mode #scroll{padding:20px 32px;}
   z-index:1000;align-items:center;justify-content:center;}
 #del-modal.on{display:flex;}
 
-@keyframes flash{0%{box-shadow:0 0 0 0 rgba(46,213,115,.8)}70%{box-shadow:0 0 0 18px rgba(46,213,115,0)}100%{box-shadow:0 0 0 0 rgba(46,213,115,0)}}
-.fl{animation:flash .6s ease-out;}
-
+/* ── FULLSCREEN TIMER OVERLAY ── */
+#fs-timer{display:none;position:fixed;inset:0;background:var(--bg);
+  z-index:500;align-items:center;justify-content:center;padding:40px;}
+#fs-timer.on{display:flex;}
+#fs-timer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:24px;width:100%;max-width:1200px;}
+.fs-tile{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:32px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;text-align:center;}
+.fs-tile.H{border-top:4px solid var(--high);}
+.fs-tile.M{border-top:4px solid var(--med);}
+.fs-tile.L{border-top:4px solid var(--low);}
+.fs-tile-time{font-family:var(--mono);font-size:4em;font-weight:900;
+  color:var(--accent);line-height:1;}
+.fs-tile-time.red{color:var(--high);}
+.fs-tile-name{font-size:1.1em;font-weight:700;color:var(--text);line-height:1.3;}
+.fs-tile-owner{font-size:.85em;color:#a78bfa;font-weight:600;}
+.fs-tile-status{font-size:.75em;color:var(--muted);font-family:var(--mono);}
 
 @keyframes flash{0%{box-shadow:0 0 0 0 rgba(46,213,115,.8)}70%{box-shadow:0 0 0 18px rgba(46,213,115,0)}100%{box-shadow:0 0 0 0 rgba(46,213,115,0)}}
 .fl{animation:flash .6s ease-out;}
@@ -295,6 +310,7 @@ body.fs-mode #scroll{padding:20px 32px;}
     </div>
   </div>
 </div>
+
 <div id="del-modal">
   <div class="mbox">
     <h3>DELETE TASK?</h3>
@@ -305,6 +321,11 @@ body.fs-mode #scroll{padding:20px 32px;}
     </div>
   </div>
 </div>
+
+<div id="fs-timer">
+  <div id="fs-timer-grid"></div>
+</div>
+    
 <div id="photo-modal">
   <div class="pm-box">
     <h3>Save Photo Proof?</h3>
@@ -632,6 +653,62 @@ function renderBoard() {
   });
 }
 
+// ── FULLSCREEN TIMER OVERLAY ──────────────────────────────
+function renderFSTimers(){
+  var grid=document.getElementById('fs-timer-grid');
+  var overlay=document.getElementById('fs-timer');
+  if(!grid||!overlay)return;
+  var pmap={High:'H',Med:'M',Low:'L'};
+  var bids=Object.keys(timers);
+  if(!bids.length||!fsMode){overlay.classList.remove('on');return;}
+  overlay.classList.add('on');
+  grid.innerHTML=bids.map(function(bid){
+    var task=active.filter(function(t){return t.bid===bid;})[0];
+    if(!task)return '';
+    var pc=pmap[task.p]||'';
+    var sec=timers[bid].sec;
+    var isRed=sec<=30&&sec>0;
+    var status=timers[bid].paused?'Paused':'Running...';
+    if(sec<=0)status='Complete!';
+    return '<div class="fs-tile '+pc+'">'
+      +'<div class="fs-tile-time'+(isRed?' red':'')+'" id="fst-'+bid+'">'+fmt(sec)+'</div>'
+      +'<div class="fs-tile-name">'+task.t+'</div>'
+      +'<div class="fs-tile-owner">'+task.o+'</div>'
+      +'<div class="fs-tile-status">'+status+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function updateFSTimers(){
+  if(!fsMode||!Object.keys(timers).length){
+    var overlay=document.getElementById('fs-timer');
+    if(overlay)overlay.classList.remove('on');
+    return;
+  }
+  Object.keys(timers).forEach(function(bid){
+    var td=document.getElementById('fst-'+bid);
+    if(!td)return;
+    var sec=timers[bid].sec;
+    td.textContent=fmt(sec);
+    if(sec<=30&&sec>0)td.classList.add('red');
+    else td.classList.remove('red');
+    var status=document.querySelector('#fst-'+bid+' ~ .fs-tile-status');
+    if(status)status.textContent=timers[bid].paused?'Paused':'Running...';
+  });
+}
+
+setInterval(updateFSTimers, 1000);
+// ── SPACEBAR PAUSE ────────────────────────────────────────
+document.addEventListener('keydown', function(e){
+  if(e.code === 'Space' && Object.keys(timers).length){
+    e.preventDefault();
+    Object.keys(timers).forEach(function(bid){
+      timerPauseToggle(bid);
+    });
+    renderFSTimers();
+  }
+});
+    
 // ── CARD ACTIONS ──────────────────────────────────────────
 function rmCard(bid){
   timerStop(bid);
@@ -758,6 +835,8 @@ function timerStart(bid,mins){
       setTimeout(function(){timerStop(bid);},3000);
     }
   },1000);
+  updateWakeLock();
+  renderFSTimers();
 }
 
 function timerPauseToggle(bid){
@@ -778,6 +857,8 @@ function timerStop(bid){
   if(btn)btn.classList.remove('timer-active');
   var task=active.filter(function(t){return t.bid===bid;})[0];
   if(task&&td)td.textContent=fmt(task.m*60);
+  updateWakeLock();
+  renderFSTimers();
 }
 
 // ── PHOTO MODAL ───────────────────────────────────────────
@@ -841,8 +922,18 @@ function toggleFS(){
     removeFSClass(); 
   }
 }
-function applyFSClass(){ document.body.classList.add('fs-mode'); document.getElementById('fs-btn').textContent='Exit Full'; fsMode=true; }
-function removeFSClass(){ document.body.classList.remove('fs-mode'); document.getElementById('fs-btn').textContent='Fullscreen'; fsMode=false; }
+function applyFSClass(){ 
+  document.body.classList.add('fs-mode'); 
+  document.getElementById('fs-btn').textContent='Exit Full'; 
+  fsMode=true;
+  renderFSTimers();
+}
+function removeFSClass(){ 
+  document.body.classList.remove('fs-mode'); 
+  document.getElementById('fs-btn').textContent='Fullscreen'; 
+  fsMode=false;
+  document.getElementById('fs-timer').classList.remove('on');
+}
 document.addEventListener('fullscreenchange',function(){ if(!document.fullscreenElement&&!document.webkitFullscreenElement) removeFSClass(); });
 document.addEventListener('webkitfullscreenchange',function(){ if(!document.webkitFullscreenElement&&!document.fullscreenElement) removeFSClass(); });
 
@@ -870,6 +961,32 @@ function alarm(){
   });}catch(e){}
 }
 
+// ── WAKE LOCK ─────────────────────────────────────────────
+var wakeLock = null;
+
+async function requestWakeLock() {
+  if('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+    } catch(e) {
+      console.log('Wake lock failed:', e);
+    }
+  }
+}
+
+function releaseWakeLock() {
+  if(wakeLock) {
+    wakeLock.release();
+    wakeLock = null;
+  }
+}
+
+function updateWakeLock() {
+  var hasActiveTimers = Object.keys(timers).length > 0;
+  if(hasActiveTimers && !wakeLock) requestWakeLock();
+  if(!hasActiveTimers && wakeLock) releaseWakeLock();
+}
+    
 // ── CONFETTI ──────────────────────────────────────────────
 function boom(){
   if(typeof confetti==='undefined')return;
