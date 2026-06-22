@@ -234,8 +234,61 @@ body.fs-mode #sidebar{display:none!important;}
 body.fs-mode #filter-bar{display:none;}
 body.fs-mode #mob-btn{display:none!important;}
 body.fs-mode #hdr h1{letter-spacing:4px;}
-body.fs-mode .grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
-body.fs-mode #scroll{padding:20px 32px;}
+body.fs-mode #scroll{padding:14px 16px 20px 16px;}
+#fs-shell{height:100%;}
+#fs-timer-panel{display:none;}
+#fs-task-panel{min-height:100%;}
+#fs-task-hd,#fs-timer-hd{display:none;}
+
+body.fs-mode #fs-shell{display:flex;gap:14px;height:100%;}
+body.fs-mode #fs-timer-panel{
+  display:flex;flex-direction:column;flex:0 0 min(34%,460px);
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;min-width:280px;
+}
+body.fs-mode #fs-task-panel{
+  display:flex;flex-direction:column;flex:1;background:rgba(17,17,30,.75);
+  border:1px solid var(--border);border-radius:12px;min-width:260px;
+}
+body.fs-mode #fs-task-hd,body.fs-mode #fs-timer-hd{
+  display:flex;justify-content:space-between;align-items:center;padding:10px 12px;
+  border-bottom:1px solid var(--border);font-size:.8em;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);font-weight:700;
+}
+body.fs-mode #board{padding:10px;overflow:auto;flex:1;}
+body.fs-mode #fs-timer-list{padding:10px;overflow:auto;display:flex;flex-direction:column;gap:10px;flex:1;}
+body.fs-mode .grid{
+  grid-template-columns:repeat(auto-fit,minmax(clamp(140px,18vw,220px),1fr));
+  gap:12px;align-content:start;
+}
+body.fs-mode .bc{position:relative;min-height:140px;cursor:pointer;transition:transform .15s ease,box-shadow .2s ease;}
+body.fs-mode .bc:hover{transform:translateY(-2px);}
+body.fs-mode .bc.fs-size-high{grid-column:span 2;grid-row:span 2;min-height:220px;}
+body.fs-mode .bc.fs-size-med{grid-row:span 1;min-height:160px;}
+body.fs-mode .bc.fs-size-low{min-height:130px;}
+body.fs-mode .bc.dragging{opacity:.45;}
+body.fs-mode .bc .fs-hover-bubble{
+  position:absolute;left:10px;right:10px;bottom:10px;background:rgba(0,0,0,.92);
+  border:1px solid var(--border);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:2px;
+  font-size:.72em;color:var(--text);pointer-events:none;opacity:0;transform:translateY(6px);
+  transition:all .15s ease;z-index:5;
+}
+body.fs-mode .bc .fs-hover-bubble strong{color:var(--accent);}
+body.fs-mode .bc:hover .fs-hover-bubble{opacity:1;transform:translateY(0);}
+body.fs-mode .fs-panel.min #board,body.fs-mode .fs-panel.min #fs-timer-list{display:none;}
+body.fs-mode .fs-panel.min{flex:0 0 auto;min-width:180px;}
+body.fs-mode .fs-timer-item{
+  background:var(--card);border:1px solid var(--border);border-left:3px solid var(--accent);
+  border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:7px;
+}
+body.fs-mode .fs-timer-item.H{border-left-color:var(--high);}
+body.fs-mode .fs-timer-item.M{border-left-color:var(--med);}
+body.fs-mode .fs-timer-item.L{border-left-color:var(--low);}
+body.fs-mode .fs-timer-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+body.fs-mode .fs-timer-name{font-size:.85em;font-weight:700;line-height:1.3;}
+body.fs-mode .fs-timer-time{font-family:var(--mono);font-weight:800;color:var(--accent);}
+body.fs-mode .fs-timer-actions{display:flex;gap:6px;}
+body.fs-mode .fs-tile-status{font-size:.74em;color:var(--muted);font-family:var(--mono);}
+body.fs-mode .fs-empty{color:var(--muted);font-size:.84em;padding:8px;}
 
 /* ── OVERLAY & CONFIRM ── */
 #overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:90;}
@@ -259,25 +312,6 @@ body.fs-mode #scroll{padding:20px 32px;}
   z-index:1000;align-items:center;justify-content:center;}
 #del-modal.on{display:flex;}
 
-/* ── FULLSCREEN TIMER OVERLAY ── */
-#fs-timer{display:none;position:fixed;inset:0;background:var(--bg);
-  z-index:500;align-items:center;justify-content:center;padding:40px;}
-#fs-timer.on{display:flex;}
-#fs-timer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:24px;width:100%;max-width:1200px;}
-.fs-tile{background:var(--card);border:1px solid var(--border);border-radius:16px;
-  padding:32px;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:12px;text-align:center;}
-.fs-tile.H{border-top:4px solid var(--high);}
-.fs-tile.M{border-top:4px solid var(--med);}
-.fs-tile.L{border-top:4px solid var(--low);}
-.fs-tile-time{font-family:var(--mono);font-size:4em;font-weight:900;
-  color:var(--accent);line-height:1;}
-.fs-tile-time.red{color:var(--high);}
-.fs-tile-name{font-size:1.1em;font-weight:700;color:var(--text);line-height:1.3;}
-.fs-tile-owner{font-size:.85em;color:#a78bfa;font-weight:600;}
-.fs-tile-status{font-size:.75em;color:var(--muted);font-family:var(--mono);}
-
 @keyframes flash{0%{box-shadow:0 0 0 0 rgba(46,213,115,.8)}70%{box-shadow:0 0 0 18px rgba(46,213,115,0)}100%{box-shadow:0 0 0 0 rgba(46,213,115,0)}}
 .fl{animation:flash .6s ease-out;}
 
@@ -291,6 +325,12 @@ body.fs-mode #scroll{padding:20px 32px;}
   #hdr h1{font-size:1.15em;}
   .stats{display:none;}
   .grid{grid-template-columns:1fr;}
+  body.fs-mode #fs-shell{flex-direction:column;}
+  body.fs-mode #fs-timer-panel{min-width:0;flex-basis:auto;}
+  body.fs-mode .bc.fs-size-high{grid-column:span 1;}
+}
+@media(max-width:1200px){
+  body.fs-mode .bc.fs-size-high{grid-column:span 1;}
 }
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
@@ -322,10 +362,6 @@ body.fs-mode #scroll{padding:20px 32px;}
   </div>
 </div>
 
-<div id="fs-timer">
-  <div id="fs-timer-grid"></div>
-</div>
-    
 <div id="photo-modal">
   <div class="pm-box">
     <h3>Save Photo Proof?</h3>
@@ -424,7 +460,22 @@ body.fs-mode #scroll{padding:20px 32px;}
   </div>
 
   <div id="scroll">
-    <div class="grid" id="board"></div>
+    <div id="fs-shell">
+      <div id="fs-timer-panel" class="fs-panel">
+        <div id="fs-timer-hd">
+          <span>Task Timers</span>
+          <button class="hbtn" id="fs-timer-toggle" onclick="toggleFSPanel('timers')">Minimize</button>
+        </div>
+        <div id="fs-timer-list"></div>
+      </div>
+      <div id="fs-task-panel" class="fs-panel">
+        <div id="fs-task-hd">
+          <span>Task Grid</span>
+          <button class="hbtn" id="fs-task-toggle" onclick="toggleFSPanel('tasks')">Minimize</button>
+        </div>
+        <div class="grid" id="board"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -494,6 +545,10 @@ var timers = {};
 var pmTargetBid = null;
 var pmDataUrl   = null;
 var fsMode = false;
+var fsTimerStack = [];
+var fsTaskOrder = [];
+var fsDragBid = null;
+var fsPanelMin = {timers:false,tasks:false};
 
 // ── LIBRARY ───────────────────────────────────────────────
 function renderLib() {
@@ -569,13 +624,27 @@ function buildOwnerOpts(current){
   }).join('');
 }
 
+function syncFSState(){
+  var bids=active.map(function(t){return t.bid;});
+  fsTaskOrder=fsTaskOrder.filter(function(bid){return bids.indexOf(bid)>=0;});
+  bids.forEach(function(bid){ if(fsTaskOrder.indexOf(bid)<0) fsTaskOrder.push(bid); });
+  fsTimerStack=fsTimerStack.filter(function(bid){return bids.indexOf(bid)>=0 && !!timers[bid];});
+}
+
+function getTaskByBid(bid){
+  for(var i=0;i<active.length;i++){ if(active[i].bid===bid) return active[i]; }
+  return null;
+}
+
 // ── BOARD RENDER ──────────────────────────────────────────
 function renderBoard() {
   var board=document.getElementById('board'); board.innerHTML='';
   var pmap={High:'H',Med:'M',Low:'L'};
+  syncFSState();
 
   if(!active.length){
     board.innerHTML='<div class="empty"><div class="empty-icon">&#127919;</div><p>Quest Board is empty &mdash; add tasks from the library!</p></div>';
+    renderFSTimers();
     return;
   }
   
@@ -589,7 +658,13 @@ function renderBoard() {
   
   if(!vis.length){
     board.innerHTML='<div class="empty"><div class="empty-icon">&#128269;</div><p>No tasks match this filter.</p></div>';
+    renderFSTimers();
     return;
+  }
+
+  if(fsMode){
+    vis=vis.filter(function(t){ return fsTimerStack.indexOf(t.bid)<0; });
+    vis.sort(function(a,b){ return fsTaskOrder.indexOf(a.bid)-fsTaskOrder.indexOf(b.bid); });
   }
   
   vis.forEach(function(t){
@@ -597,16 +672,31 @@ function renderBoard() {
     var pc=pmap[t.p];
     var hasTimer=timers[t.bid];
     var roomName = t.c || 'Custom Task';
+    var sizeClass='fs-size-low';
+    if(t.p==='High')sizeClass='fs-size-high';
+    else if(t.p==='Med')sizeClass='fs-size-med';
     var d=document.createElement('div');
-    d.className='bc '+pc+(isDone?' done':'');
+    d.className='bc '+pc+(isDone?' done':'')+(fsMode?' '+sizeClass:'');
     d.id='card-'+t.bid;
+    if(fsMode){
+      d.setAttribute('draggable','true');
+      d.setAttribute('ondragstart',"fsDragStart(event,'"+t.bid+"')");
+      d.setAttribute('ondragend',"fsDragEnd(event)");
+      d.setAttribute('ondragover',"fsDragOver(event,'"+t.bid+"')");
+      d.setAttribute('ondrop',"fsDrop(event,'"+t.bid+"')");
+      d.setAttribute('onclick',"fsCardClick(event,'"+t.bid+"',"+t.m+")");
+    }
 
     var photoHtml='';
     if(t.photo){ photoHtml='<img class="card-photo show" id="ph-'+t.bid+'" src="'+t.photo+'" alt="Proof">'; } 
     else { photoHtml='<img class="card-photo" id="ph-'+t.bid+'" alt="Proof">'; }
+    var bubbleHtml=fsMode
+      ?'<div class="fs-hover-bubble"><strong>'+t.p+' Priority</strong><span>'+roomName+'</span><span>'+t.m+' min &bull; '+t.o+'</span></div>'
+      :'';
 
     d.innerHTML=
       '<div class="room-badge">📍 ' + roomName + '</div>'
+      +bubbleHtml
       +'<div class="ct"><div class="ctitle" id="ctitle-'+t.bid+'">'+t.t+'</div>'
       +'<button class="crmv" onclick="rmCard(\''+t.bid+'\')">X</button></div>'
       +'<div class="cmeta"><span>'+t.m+' min</span>'
@@ -647,50 +737,98 @@ function renderBoard() {
     var td=document.getElementById('td-'+bid);
     if(td) td.textContent=fmt(timers[bid].sec);
   });
+  renderFSTimers();
 }
 
 // ── FULLSCREEN TIMER OVERLAY ──────────────────────────────
 function renderFSTimers(){
-  var grid=document.getElementById('fs-timer-grid');
-  var overlay=document.getElementById('fs-timer');
-  if(!grid||!overlay)return;
+  var panel=document.getElementById('fs-timer-panel');
+  var list=document.getElementById('fs-timer-list');
+  var btn=document.getElementById('fs-timer-toggle');
+  if(!panel||!list)return;
+  panel.classList.toggle('min', !!fsPanelMin.timers);
+  if(btn)btn.textContent=fsPanelMin.timers?'Maximize':'Minimize';
+  if(!fsMode){ list.innerHTML=''; return; }
+  syncFSState();
   var pmap={High:'H',Med:'M',Low:'L'};
-  var bids=Object.keys(timers);
-  if(!bids.length||!fsMode){overlay.classList.remove('on');return;}
-  overlay.classList.add('on');
-  grid.innerHTML=bids.map(function(bid){
-    var task=active.filter(function(t){return t.bid===bid;})[0];
-    if(!task)return '';
+  if(fsPanelMin.timers){ return; }
+  if(!fsTimerStack.length){
+    list.innerHTML='<div class="fs-empty">Click a task card to start timers here.</div>';
+    return;
+  }
+  list.innerHTML=fsTimerStack.map(function(bid){
+    var task=getTaskByBid(bid);
+    var timer=timers[bid];
+    if(!task||!timer)return '';
     var pc=pmap[task.p]||'';
-    var sec=timers[bid].sec;
+    var sec=timer.sec;
     var isRed=sec<=30&&sec>0;
-    var status=timers[bid].paused?'Paused':'Running...';
+    var status=timer.paused?'Paused':'Running...';
     if(sec<=0)status='Complete!';
-    return '<div class="fs-tile '+pc+'">'
-      +'<div class="fs-tile-time'+(isRed?' red':'')+'" id="fst-'+bid+'">'+fmt(sec)+'</div>'
-      +'<div class="fs-tile-name">'+task.t+'</div>'
-      +'<div class="fs-tile-owner">'+task.o+'</div>'
+    return '<div class="fs-timer-item '+pc+'">'
+      +'<div class="fs-timer-top"><div class="fs-timer-name">'+task.t+'</div><div class="fs-timer-time'+(isRed?' red':'')+'">'+fmt(sec)+'</div></div>'
+      +'<div class="cmeta"><span>'+task.m+' min</span><span class="owner">'+task.o+'</span><span class="badge '+task.p+'">'+task.p+'</span></div>'
       +'<div class="fs-tile-status">'+status+'</div>'
+      +'<div class="fs-timer-actions">'
+      +'<button class="cbtn" onclick="event.stopPropagation();timerPauseToggle(\''+bid+'\');renderFSTimers();">'+(timer.paused?'Resume':'Pause')+'</button>'
+      +'<button class="cbtn" onclick="event.stopPropagation();timerStop(\''+bid+'\');">Stop</button>'
+      +'</div>'
       +'</div>';
-  }).join('');
+  }).join('')||'<div class="fs-empty">Click a task card to start timers here.</div>';
 }
 
 function updateFSTimers(){
-  if(!fsMode||!Object.keys(timers).length){
-    var overlay=document.getElementById('fs-timer');
-    if(overlay)overlay.classList.remove('on');
-    return;
-  }
-  Object.keys(timers).forEach(function(bid){
-    var td=document.getElementById('fst-'+bid);
-    if(!td)return;
-    var sec=timers[bid].sec;
-    td.textContent=fmt(sec);
-    if(sec<=30&&sec>0)td.classList.add('red');
-    else td.classList.remove('red');
-    var status=document.querySelector('#fst-'+bid+' ~ .fs-tile-status');
-    if(status)status.textContent=timers[bid].paused?'Paused':'Running...';
-  });
+  if(!fsMode)return;
+  renderFSTimers();
+}
+
+function toggleFSPanel(panel){
+  if(!fsMode||!fsPanelMin.hasOwnProperty(panel))return;
+  fsPanelMin[panel]=!fsPanelMin[panel];
+  var panelEl=document.getElementById(panel==='timers'?'fs-timer-panel':'fs-task-panel');
+  var btn=document.getElementById(panel==='timers'?'fs-timer-toggle':'fs-task-toggle');
+  if(panelEl)panelEl.classList.toggle('min',fsPanelMin[panel]);
+  if(btn)btn.textContent=fsPanelMin[panel]?'Maximize':'Minimize';
+}
+
+function fsCardClick(e,bid,mins){
+  if(!fsMode)return;
+  if(e.target.closest('button,input,select,label,.edit-panel,.crmv,.chk'))return;
+  if(timers[bid]){ timerPauseToggle(bid); renderFSTimers(); return; }
+  timerStart(bid,mins);
+}
+
+function fsDragStart(e,bid){
+  if(!fsMode)return;
+  fsDragBid=bid;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',bid);
+  var el=document.getElementById('card-'+bid);
+  if(el)el.classList.add('dragging');
+}
+
+function fsDragEnd(){
+  fsDragBid=null;
+  document.querySelectorAll('.bc.dragging').forEach(function(el){el.classList.remove('dragging');});
+}
+
+function fsDragOver(e){
+  if(!fsMode)return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+}
+
+function fsDrop(e,targetBid){
+  if(!fsMode)return;
+  e.preventDefault();
+  if(!fsDragBid||fsDragBid===targetBid)return;
+  var from=fsTaskOrder.indexOf(fsDragBid);
+  var to=fsTaskOrder.indexOf(targetBid);
+  if(from<0||to<0)return;
+  fsTaskOrder.splice(from,1);
+  fsTaskOrder.splice(to,0,fsDragBid);
+  fsDragBid=null;
+  renderBoard();
 }
 
 setInterval(updateFSTimers, 1000);
@@ -708,6 +846,8 @@ document.addEventListener('keydown', function(e){
 // ── CARD ACTIONS ──────────────────────────────────────────
 function rmCard(bid){
   timerStop(bid);
+  fsTimerStack=fsTimerStack.filter(function(x){return x!==bid;});
+  fsTaskOrder=fsTaskOrder.filter(function(x){return x!==bid;});
   active=active.filter(function(t){return t.bid!==bid;});
   done.delete(bid);
   renderBoard(); updateStats();
@@ -804,6 +944,7 @@ function timerStart(bid,mins){
   var task=active.filter(function(t){return t.bid===bid;})[0];
   if(!task)return;
   timers[bid]={sec:mins*60,paused:false,interval:null};
+  if(fsMode&&fsTimerStack.indexOf(bid)<0)fsTimerStack.push(bid);
   var row=document.getElementById('tr-'+bid);
   var btn=document.getElementById('tb-'+bid);
   var pb=document.getElementById('tp-'+bid);
@@ -832,7 +973,8 @@ function timerStart(bid,mins){
     }
   },1000);
   updateWakeLock();
-  renderFSTimers();
+  if(fsMode){ renderBoard(); }
+  else { renderFSTimers(); }
 }
 
 function timerPauseToggle(bid){
@@ -846,6 +988,7 @@ function timerPauseToggle(bid){
 
 function timerStop(bid){
   if(timers[bid]){ clearInterval(timers[bid].interval); delete timers[bid]; }
+  fsTimerStack=fsTimerStack.filter(function(x){return x!==bid;});
   var row=document.getElementById('tr-'+bid);
   var btn=document.getElementById('tb-'+bid);
   var td=document.getElementById('td-'+bid);
@@ -854,7 +997,8 @@ function timerStop(bid){
   var task=active.filter(function(t){return t.bid===bid;})[0];
   if(task&&td)td.textContent=fmt(task.m*60);
   updateWakeLock();
-  renderFSTimers();
+  if(fsMode){ renderBoard(); }
+  else { renderFSTimers(); }
 }
 
 // ── PHOTO MODAL ───────────────────────────────────────────
@@ -922,13 +1066,27 @@ function applyFSClass(){
   document.body.classList.add('fs-mode'); 
   document.getElementById('fs-btn').textContent='Exit Full'; 
   fsMode=true;
+  syncFSState();
+  fsPanelMin.timers=false;
+  fsPanelMin.tasks=false;
+  var taskBtn=document.getElementById('fs-task-toggle');
+  var timerBtn=document.getElementById('fs-timer-toggle');
+  if(taskBtn)taskBtn.textContent='Minimize';
+  if(timerBtn)timerBtn.textContent='Minimize';
+  var taskPanel=document.getElementById('fs-task-panel');
+  var timerPanel=document.getElementById('fs-timer-panel');
+  if(taskPanel)taskPanel.classList.remove('min');
+  if(timerPanel)timerPanel.classList.remove('min');
+  renderBoard();
   renderFSTimers();
 }
 function removeFSClass(){ 
   document.body.classList.remove('fs-mode'); 
   document.getElementById('fs-btn').textContent='Fullscreen'; 
   fsMode=false;
-  document.getElementById('fs-timer').classList.remove('on');
+  fsPanelMin.timers=false;
+  fsPanelMin.tasks=false;
+  renderBoard();
 }
 document.addEventListener('fullscreenchange',function(){ if(!document.fullscreenElement&&!document.webkitFullscreenElement) removeFSClass(); });
 document.addEventListener('webkitfullscreenchange',function(){ if(!document.webkitFullscreenElement&&!document.fullscreenElement) removeFSClass(); });
