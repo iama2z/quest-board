@@ -350,13 +350,11 @@ body.fs-mode #scroll{padding:20px 32px;}
       </div>
       <div class="form-row">
         <select id="nt-cat">
-          <option>Logistics &amp; Self-Care</option>
-          <option>Kitchen &amp; Dining</option>
-          <option>Living Room</option>
-          <option>Family Room</option>
-          <option>Bedrooms &amp; Hallways</option>
-          <option>Bathrooms</option>
-          <option>Outdoor &amp; Garage</option>
+          <option>Health &amp; Hygiene (Daily/Routine)</option>
+          <option>Appointments (Logistics)</option>
+          <option>Daily Chores (Maintenance)</option>
+          <option>Weekend Chores (Deeper Cleans)</option>
+          <option>Major Jobs (Project/Repair)</option>
         </select>
         <select id="nt-pri">
           <option value="High">High</option>
@@ -365,6 +363,26 @@ body.fs-mode #scroll{padding:20px 32px;}
         </select>
       </div>
       <button class="btn-add" onclick="addCustom()">+ Add to Library</button>
+      <details style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px;">
+        <summary style="cursor:pointer;color:var(--accent);font-size:.82em;font-weight:700;">Weekly List Planner (Starter)</summary>
+        <div class="add-form" style="margin-top:8px;">
+          <textarea id="wk-lines" rows="5" placeholder="Paste one chore per line" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:6px;font-size:.84em;outline:none;width:100%;font-family:var(--font);resize:vertical;"></textarea>
+          <div class="form-row">
+            <select id="wk-cat">
+              <option>Daily Chores (Maintenance)</option>
+              <option>Weekend Chores (Deeper Cleans)</option>
+              <option>Major Jobs (Project/Repair)</option>
+              <option>Appointments (Logistics)</option>
+              <option>Health &amp; Hygiene (Daily/Routine)</option>
+            </select>
+            <select id="wk-owner">
+              <option>Andrew</option>
+              <option>Katelynn</option>
+            </select>
+          </div>
+          <button class="btn-add" onclick="addWeeklyList()">+ Add Weekly List</button>
+        </div>
+      </details>
     </div>
   </div>
   <div id="lib"></div>
@@ -395,18 +413,14 @@ body.fs-mode #scroll{padding:20px 32px;}
     <button class="fb fl" onclick="setF('Low',this)">Low</button>
     
     <button class="fb" onclick="setF('Andrew',this)">Andrew</button>
-    <button class="fb" onclick="setF('Toby',this)">Toby</button>
-    <button class="fb" onclick="setF('Joella',this)">Joella</button>
-    <button class="fb" onclick="setF('Avett',this)">Avett</button>
-    <button class="fb" onclick="setF('Anyone',this)">Anyone</button>
+    <button class="fb" onclick="setF('Katelynn',this)">Katelynn</button>
 
     <div style="border-left: 1px solid var(--border); margin: 0 5px; height: 20px;"></div>
-    <button class="fb" onclick="setF('Kitchen & Dining',this)">Kitchen</button>
-    <button class="fb" onclick="setF('Living Room',this)">Living Rm</button>
-    <button class="fb" onclick="setF('Family Room',this)">Family Rm</button>
-    <button class="fb" onclick="setF('Bedrooms & Hallways',this)">Beds/Halls</button>
-    <button class="fb" onclick="setF('Bathrooms',this)">Baths</button>
-    <button class="fb" onclick="setF('Outdoor & Garage',this)">Garage</button>
+    <button class="fb" onclick="setF('Health & Hygiene (Daily/Routine)',this)">Health</button>
+    <button class="fb" onclick="setF('Appointments (Logistics)',this)">Appointments</button>
+    <button class="fb" onclick="setF('Daily Chores (Maintenance)',this)">Daily</button>
+    <button class="fb" onclick="setF('Weekend Chores (Deeper Cleans)',this)">Weekend</button>
+    <button class="fb" onclick="setF('Major Jobs (Project/Repair)',this)">Major</button>
   </div>
 
   <div id="scroll">
@@ -417,78 +431,60 @@ body.fs-mode #scroll{padding:20px 32px;}
 <script>
 // ── DATABASE ──────────────────────────────────────────────
 var DB = {
-  "Logistics & Self-Care": [
-    {id:"sc1",t:"Shower, Floss & Brush Teeth",m:20,o:"Andrew",p:"High"},
-    {id:"sc2",t:"Take a Quiet Rest Break",m:30,o:"Andrew",p:"High"},
-    {id:"lg1",t:"Bank: Get Amber's Bday Money",m:30,o:"Andrew",p:"High"},
-    {id:"lg2",t:"Fix Mosaic Phone Bill Payee",m:20,o:"Andrew",p:"High"}
+  "Health & Hygiene (Daily/Routine)": [
+    {id:"hh1",t:"Shower, Floss & Brush Teeth (Daily)",m:20,o:"Andrew",p:"High"},
+    {id:"hh2",t:"Manage Prescriptions",m:10,o:"Katelynn",p:"High"}
   ],
-  "Kitchen & Dining": [
-    {id:"k0",t:"🌪️ 10-Min Clutter Sweep (Cups, Random Items)",m:10,o:"Anyone",p:"High"},
-    {id:"k1",t:"Unload Top Rack",m:4,o:"Anyone",p:"High"},
-    {id:"k2",t:"Unload Bottom Rack",m:4,o:"Anyone",p:"High"},
-    {id:"k3",t:"Load Dirty Sink Dishes",m:5,o:"Anyone",p:"High"},
-    {id:"k4",t:"Hand Wash Big Items",m:10,o:"Anyone",p:"Med"},
-    {id:"k5",t:"Wipe Counters",m:5,o:"Joella",p:"High"},
-    {id:"k6",t:"Sweep Kitchen Floor",m:5,o:"Toby",p:"Med"},
-    {id:"k7",t:"Mop Kitchen Floor",m:10,o:"Toby",p:"Low"},
-    {id:"k8",t:"Wipe Inside Microwave",m:3,o:"Anyone",p:"Med"},
-    {id:"k9",t:"Reorganize Dining Table Space",m:5,o:"Joella",p:"High"},
-    {id:"k10",t:"Reorganize Bar Area",m:10,o:"Andrew",p:"Med"},
-    {id:"k11",t:"Fix Wobbly Faucet",m:15,o:"Andrew",p:"Low"},
-    {id:"k12",t:"Organize Under Sink",m:15,o:"Andrew",p:"Low"}
+  "Appointments (Logistics)": [
+    {id:"ap1",t:"Set up appointments for the family (Doctor, Dentist, Eye)",m:25,o:"Katelynn",p:"High"},
+    {id:"ap2",t:"Pay for driver's ed (Aliena)",m:10,o:"Andrew",p:"Med"}
   ],
-  "Living Room": [
-    {id:"lr0",t:"🌪️ 10-Min Clutter Sweep (Cups, Clothes, Pillows)",m:10,o:"Anyone",p:"High"},
-    {id:"lr1",t:"Pick Up Kid Trash/Wrappers",m:5,o:"Toby",p:"High"},
-    {id:"lr2",t:"Vacuum Furniture/Couch",m:10,o:"Toby",p:"Med"},
-    {id:"lr3",t:"Clean Sliding Glass Window",m:5,o:"Joella",p:"Low"},
-    {id:"lr4",t:"Fold 1 Basket of Laundry",m:10,o:"Anyone",p:"Med"},
-    {id:"lr5",t:"Vacuum Floors & Steps",m:10,o:"Toby",p:"High"},
-    {id:"lr6",t:"Reorganize Under TV",m:10,o:"Anyone",p:"Med"},
-    {id:"lr7",t:"Reorganize Next to Grey Couch",m:5,o:"Anyone",p:"Med"},
-    {id:"lr8",t:"Reorganize Amber's Side",m:10,o:"Andrew",p:"High"},
-    {id:"lr9",t:"Clear Behind Main Couch",m:5,o:"Anyone",p:"Med"}
+  "Daily Chores (Maintenance)": [
+    {id:"dc1",t:"Unload/Load Dishwasher",m:15,o:"Andrew",p:"High"},
+    {id:"dc2",t:"Wipe counters/sink",m:10,o:"Katelynn",p:"High"},
+    {id:"dc3",t:"Pick up/Put away misplaced items",m:15,o:"Andrew",p:"Med"}
   ],
-  "Family Room": [
-    {id:"fr0",t:"🌪️ 10-Min Clutter Sweep (Cups, Clothes, Pillows)",m:10,o:"Anyone",p:"High"},
-    {id:"fr1",t:"Organize Computer Desk",m:15,o:"Andrew",p:"Med"},
-    {id:"fr2",t:"Organize Book Shelf",m:10,o:"Joella",p:"Low"},
-    {id:"fr3",t:"Organize Board Game Shelf",m:10,o:"Anyone",p:"Low"},
-    {id:"fr4",t:"Clear Couch Area",m:5,o:"Anyone",p:"High"},
-    {id:"fr5",t:"Clear Electronics Workspace",m:15,o:"Andrew",p:"Med"},
-    {id:"fr6",t:"Avett's Lego Workspace",m:15,o:"Avett",p:"High"},
-    {id:"fr7",t:"Organize Jackets/Hats/Shoes",m:10,o:"Joella",p:"Med"},
-    {id:"fr8",t:"Vacuum Family Room Floor",m:10,o:"Toby",p:"High"}
+  "Weekend Chores (Deeper Cleans)": [
+    {id:"wk1",t:"Clean stove top/microwave interior",m:20,o:"Katelynn",p:"Med"},
+    {id:"wk2",t:"Sweep/Mop floors (Kitchen & Bathrooms)",m:35,o:"Andrew",p:"Med"},
+    {id:"wk3",t:"Vacuum/Dust surfaces & electronics (Living/Family Rooms)",m:35,o:"Andrew",p:"Med"},
+    {id:"wk4",t:"Manage Litter Boxes (Scoop/Change)",m:15,o:"Katelynn",p:"Med"},
+    {id:"wk5",t:"Organize desk surface/cable management",m:20,o:"Andrew",p:"Med"},
+    {id:"wk6",t:"Organize game/shelf space",m:20,o:"Katelynn",p:"Med"},
+    {id:"wk7",t:"Clear around the couch areas",m:15,o:"Andrew",p:"Med"},
+    {id:"wk8",t:"Avett's Lego workspace maintenance",m:15,o:"Katelynn",p:"Med"},
+    {id:"wk9",t:"Laundry (Sort/Wash/Dry/Put Away)",m:45,o:"Andrew",p:"High"},
+    {id:"wk10",t:"Organize side tables",m:15,o:"Katelynn",p:"Med"},
+    {id:"wk11",t:"Vacuum bedrooms/hallways",m:25,o:"Andrew",p:"Med"},
+    {id:"wk12",t:"Clean/Reorganize Avett's room",m:30,o:"Katelynn",p:"Med"},
+    {id:"wk13",t:"Clean toilet interiors/exteriors",m:20,o:"Andrew",p:"Med"},
+    {id:"wk14",t:"Wipe mirrors/counters",m:15,o:"Katelynn",p:"Med"},
+    {id:"wk15",t:"Scrub showers/tubs",m:30,o:"Andrew",p:"Med"},
+    {id:"wk16",t:"Clean out car (Trash/Vacuum/Wipe/Windows)",m:35,o:"Andrew",p:"Low"},
+    {id:"wk17",t:"Organize tool shelf",m:20,o:"Andrew",p:"Low"},
+    {id:"wk18",t:"Electronics Work Space: Organize cables",m:20,o:"Katelynn",p:"Med"},
+    {id:"wk19",t:"Electronics Work Space: Organize electronics components",m:25,o:"Andrew",p:"Med"},
+    {id:"wk20",t:"Clear garage entryway/walkways",m:20,o:"Andrew",p:"Med"},
+    {id:"wk21",t:"Front Yard: Organize side/remove debris/blow debris",m:35,o:"Katelynn",p:"Low"},
+    {id:"wk22",t:"Back Yard: Weed eat",m:30,o:"Andrew",p:"Low"},
+    {id:"wk23",t:"Clean bed sheets",m:20,o:"Katelynn",p:"Med"},
+    {id:"wk24",t:"Treat pests with diatomaceous earth throughout house",m:25,o:"Andrew",p:"Low"}
   ],
-  "Bedrooms & Hallways": [
-    {id:"bh0",t:"🌪️ 10-Min Clutter Sweep (Cups, Clothes, Trash)",m:10,o:"Anyone",p:"High"},
-    {id:"bh1",t:"Clear Andrew's Side of Bed",m:10,o:"Andrew",p:"High"},
-    {id:"bh2",t:"Put Andrew's Laundry Away",m:10,o:"Andrew",p:"Med"},
-    {id:"bh3",t:"Vacuum Master Bedroom",m:10,o:"Andrew",p:"Low"},
-    {id:"bh4",t:"Clean & Reorganize Avett's Room",m:20,o:"Avett",p:"High"},
-    {id:"bh5",t:"Pick Up Hallway Clothes",m:5,o:"Toby/Joella",p:"High"},
-    {id:"bh6",t:"Organize Washer/Dryer Area",m:15,o:"Anyone",p:"Low"}
-  ],
-  "Bathrooms": [
-    {id:"ba0",t:"🌪️ 5-Min Clutter Sweep (Towels, Clothes, Trash)",m:5,o:"Anyone",p:"High"},
-    {id:"ba1",t:"Downstairs: Put Items Away",m:5,o:"Anyone",p:"High"},
-    {id:"ba2",t:"Downstairs: Wipe Counters/Mirror",m:5,o:"Anyone",p:"Med"},
-    {id:"ba3",t:"Downstairs: Clean Toilet",m:10,o:"Anyone",p:"Med"},
-    {id:"ba4",t:"Downstairs: Mop Floor",m:10,o:"Anyone",p:"Low"},
-    {id:"ba5",t:"Upstairs: Wipe Down Shower",m:15,o:"Joella",p:"Med"},
-    {id:"ba6",t:"Upstairs: Mop Floor",m:10,o:"Joella",p:"Low"},
-    {id:"ba7",t:"Upstairs: Fix Cold-Water Sink",m:20,o:"Andrew",p:"Low"}
-  ],
-  "Outdoor & Garage": [
-    {id:"og0",t:"🌪️ 10-Min Clutter Sweep (Random Items, Trash)",m:10,o:"Anyone",p:"High"},
-    {id:"og1",t:"Garage: Clear Tool Space",m:15,o:"Andrew",p:"Low"},
-    {id:"og2",t:"Garage: Clear Workbench",m:15,o:"Andrew",p:"Low"},
-    {id:"og3",t:"Garage: Clear Entryway Floor",m:15,o:"Toby",p:"High"},
-    {id:"og4",t:"Backyard: Sawzall Furniture",m:30,o:"Andrew",p:"Low"},
-    {id:"og5",t:"Backyard: Burn Wood/Debris",m:45,o:"Andrew",p:"Low"},
-    {id:"og6",t:"Backyard: Plant Grass/Gravel Path",m:60,o:"Andrew",p:"Low"},
-    {id:"og7",t:"Backyard: Edging & Dirt Guard",m:30,o:"Andrew",p:"Low"}
+  "Major Jobs (Project/Repair)": [
+    {id:"mj1",t:"Deep clean carpets (Whole house)",m:120,o:"Andrew",p:"Low"},
+    {id:"mj2",t:"Car Maintenance: Brakes (General)",m:90,o:"Andrew",p:"Low"},
+    {id:"mj3",t:"Car Maintenance: Oil Change",m:45,o:"Andrew",p:"Low"},
+    {id:"mj4",t:"Fix Fiat: Electrical problems",m:120,o:"Andrew",p:"Low"},
+    {id:"mj5",t:"Fix Fiat: Replace car battery",m:35,o:"Andrew",p:"Low"},
+    {id:"mj6",t:"Fix Mazda: Electronics (AC, stereo, interior lights)",m:120,o:"Andrew",p:"Low"},
+    {id:"mj7",t:"Backyard: Sawzall furniture chunks",m:60,o:"Andrew",p:"Low"},
+    {id:"mj8",t:"Backyard: Dump furniture debris",m:60,o:"Andrew",p:"Low"},
+    {id:"mj9",t:"Backyard: Burn wood/debris",m:45,o:"Andrew",p:"Low"},
+    {id:"mj10",t:"Backyard: General decluttering",m:60,o:"Katelynn",p:"Low"},
+    {id:"mj11",t:"Fix wobbly kitchen faucet",m:30,o:"Andrew",p:"Low"},
+    {id:"mj12",t:"Fix bikes",m:45,o:"Andrew",p:"Low"},
+    {id:"mj13",t:"Fix car tire sound",m:45,o:"Andrew",p:"Low"},
+    {id:"mj14",t:"Fix nail in car tire",m:30,o:"Andrew",p:"Low"}
   ]
 };
 
@@ -557,11 +553,11 @@ function push(id) {
 
 // ── EDIT DROPDOWN BUILDERS ────────────────────────────────
 
-var OWNERS = ["Andrew","Toby","Joella","Katelynn","Avett","Aliena","Anyone","Toby/Joella"];
+var OWNERS = ["Andrew","Katelynn"];
 
 function buildTimeOpts(current){
   var html='';
-  for(var i=5;i<=90;i+=5){ html+='<option value="'+i+'"'+(i===current?' selected':'')+'>'+i+' min</option>'; }
+  for(var i=5;i<=180;i+=5){ html+='<option value="'+i+'"'+(i===current?' selected':'')+'>'+i+' min</option>'; }
   if(current%5!==0){ html='<option value="'+current+'" selected>'+current+' min</option>'+html; }
   return html;
 }
@@ -586,7 +582,7 @@ function renderBoard() {
   var vis=active.filter(function(t){
     if(filt==='all') return true;
     if(['High','Med','Low'].indexOf(filt)>=0) return t.p===filt;
-    if(['Andrew','Toby','Joella','Avett','Anyone'].indexOf(filt)>=0) return t.o.toLowerCase().indexOf(filt.toLowerCase())>=0;
+    if(OWNERS.indexOf(filt)>=0) return t.o.toLowerCase().indexOf(filt.toLowerCase())>=0;
     // Room Filter Match (checks if the category string matches the filter)
     return (t.c || '').toLowerCase().indexOf(filt.toLowerCase())>=0;
   });
@@ -999,7 +995,7 @@ function addCustom(){
   var title=document.getElementById('nt-title').value.trim();
   if(!title){document.getElementById('nt-title').focus();return;}
   var m=parseInt(document.getElementById('nt-time').value)||10;
-  var o=document.getElementById('nt-owner').value.trim()||'Anyone';
+  var o=document.getElementById('nt-owner').value.trim()||'Andrew';
   var cat=document.getElementById('nt-cat').value;
   var p=document.getElementById('nt-pri').value;
   if(!DB[cat])DB[cat]=[];
@@ -1007,6 +1003,32 @@ function addCustom(){
   document.getElementById('nt-title').value='';
   document.getElementById('nt-time').value='';
   document.getElementById('nt-owner').value='';
+  renderLib();
+}
+
+function addWeeklyList(){
+  var linesEl=document.getElementById('wk-lines');
+  if(!linesEl)return;
+  var rows=linesEl.value.split(/\n+/).map(function(line){
+    return line.replace(/^\s*[•●\-*]+\s*/, '').trim();
+  }).filter(Boolean);
+  if(!rows.length){linesEl.focus();return;}
+
+  var cat=(document.getElementById('wk-cat')||{}).value||'Weekend Chores (Deeper Cleans)';
+  var owner=(document.getElementById('wk-owner')||{}).value||'Andrew';
+  if(!DB[cat])DB[cat]=[];
+
+  rows.forEach(function(title,idx){
+    DB[cat].push({
+      id:'w'+Date.now()+'_'+idx,
+      t:title,
+      m:15,
+      o:owner,
+      p:'Med'
+    });
+  });
+
+  linesEl.value='';
   renderLib();
 }
 
