@@ -414,6 +414,10 @@ body.fs-mode .fs-empty{color:var(--muted);font-size:.84em;padding:8px;}
             <select id="wk-owner">
               <option>Andrew</option>
               <option>Katelynn</option>
+              <option>Joella</option>
+              <option>Avett</option>
+              <option>Toby</option>
+              <option>Aliens</option>
             </select>
           </div>
           <button class="btn-add" onclick="addWeeklyList()">+ Add Weekly List</button>
@@ -450,6 +454,10 @@ body.fs-mode .fs-empty{color:var(--muted);font-size:.84em;padding:8px;}
     
     <button class="fb" onclick="setF('Andrew',this)">Andrew</button>
     <button class="fb" onclick="setF('Katelynn',this)">Katelynn</button>
+    <button class="fb" onclick="setF('Joella',this)">Joella</button>
+    <button class="fb" onclick="setF('Avett',this)">Avett</button>
+    <button class="fb" onclick="setF('Toby',this)">Toby</button>
+    <button class="fb" onclick="setF('Aliens',this)">Aliens</button>
 
     <div style="border-left: 1px solid var(--border); margin: 0 5px; height: 20px;"></div>
     <button class="fb" onclick="setF('Health & Hygiene (Daily/Routine)',this)">Health</button>
@@ -608,7 +616,7 @@ function push(id) {
 
 // ── EDIT DROPDOWN BUILDERS ────────────────────────────────
 
-var OWNERS = ["Andrew","Katelynn"];
+var OWNERS = ["Andrew","Katelynn","Joella","Avett","Toby","Aliens"];
 
 function buildTimeOpts(current){
   var html='';
